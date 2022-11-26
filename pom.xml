@@ -15,6 +15,10 @@
             <name>PrismoidNW</name>
             <email>prismoid@galactic-star.dev</email>
         </developer>
+        <developer>
+            <name>Verox</name>
+            <email>verox@cimeyclust.com</email>
+        </developer>
     </developers>
 
     <modules>

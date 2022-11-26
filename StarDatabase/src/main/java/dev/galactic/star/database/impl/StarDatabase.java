@@ -13,6 +13,8 @@ public abstract class StarDatabase {
 
     private Connection connection;
 
+    private boolean debug;
+
     /**
      * The type of supported database at the moment. It takes an enum with several values.
      *
@@ -21,7 +23,7 @@ public abstract class StarDatabase {
      * @return StarDatabase
      */
     public static StarDatabase type(DatabaseType dbType) {
-        if (dbType == DatabaseType.MySQL) {
+        if (dbType == DatabaseType.MYSQL) {
             return new MySqlDatabase();
         }
         try {
@@ -65,6 +67,13 @@ public abstract class StarDatabase {
     public abstract void createTables(Table... tables) throws SQLException;
 
     /**
+     * The abstract method that is called after connecting to create a database.
+     * @param tables the list of classes, annotated by the DatabaseTable annotation
+     * @throws SQLException if you don't have any tables to create
+     */
+    public abstract void createTables(Class<?>... tables) throws SQLException;
+
+    /**
      * Returns the connection of the database.
      *
      * @return Connection
@@ -80,6 +89,25 @@ public abstract class StarDatabase {
      */
     protected void setConnection(Connection connection) {
         this.connection = connection;
+    }
+
+    /**
+     * This method allows to check the debug mode from the current Database
+     *
+     * @return A boolean, which is true if debug mode is enabled and false if not.
+     */
+    public boolean isDebug() {
+        return this.debug;
+    }
+
+    /**
+     * This method allows to set the debug mode to true or false
+     *
+     * @param debug if true, error messages with their stacktrace, internal infos and warnings will be printed
+     * out completely. if false errors and warnings will be distinct to their core information.
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     /**
