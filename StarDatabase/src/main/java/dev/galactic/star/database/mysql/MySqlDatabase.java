@@ -68,7 +68,6 @@ public class MySqlDatabase extends StarDatabase {
             for (Class<?> table : tables) {
                 StringBuilder mainSb = new StringBuilder("CREATE TABLE IF NOT EXISTS " + table.getName() + "(");
 
-
                 /*for (Entry<String, Column> cl : table.getColumns().entrySet()) {
                     Column column = cl.getValue();
                     String key = cl.getKey();
