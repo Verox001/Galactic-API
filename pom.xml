@@ -23,6 +23,7 @@
 
     <modules>
         <module>StarDatabase</module>
+        <module>StarTools</module>
     </modules>
 
     <properties>
