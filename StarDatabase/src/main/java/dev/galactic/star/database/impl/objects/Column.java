@@ -1,6 +1,8 @@
 package dev.galactic.star.database.impl.objects;
 
 /**
+ * Class holding the Column's metadata.
+ *
  * @author PrismoidNW
  */
 public class Column {
@@ -10,6 +12,15 @@ public class Column {
     private boolean autoIncrement;
     private int maxSize;
 
+    /**
+     * Default constructor used to set the different metadata of a column (Name, field type, autoincrement, etc).
+     *
+     * @param name          Database Name.
+     * @param fieldType     Type of column.
+     * @param canBeNull     Whether the Column can have null values.
+     * @param autoIncrement Whether to auto increment the value.
+     * @param maxSize       Max size of the value.
+     */
     public Column(String name, ColumnType fieldType, boolean canBeNull, boolean autoIncrement,
                   int maxSize) {
         this.name = name;

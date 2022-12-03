@@ -1,42 +1,75 @@
 package dev.galactic.star.database.impl.objects;
 
-import sun.jvm.hotspot.utilities.Bits;
-
-import java.sql.Time;
-import java.sql.Date;
-
+/**
+ * The enum with all the supported Column types the database can use.
+ * @author PrismoidNW
+ */
 public enum ColumnType {
-    INT("INT", Integer.class, 11),
-    FLOAT("FLOAT", Float.class, 0),
-    BIT("BIT", Bits.class, 0),
-    BOOL("BOOL", Boolean.class, 0),
-    DATE("DATE", java.util.Date.class, 0),
-    TIME("TIME", Time.class, 0),
-    DATE_TIME("DATETIME", Date.class, 0),
-    CHAR("CHAR", Character.class, 1),
-    VARCHAR("VARCHAR", String.class, 255),
-    TEXT("TEXT", String.class, 65535),
-    BINARY("BINARY", Byte.class, 0);
+    /**
+     * Integer datatype of the database.
+     */
+    INT("INT"),
+    /**
+     * Float datatype of the database.
+     */
+    FLOAT("FLOAT"),
+    /**
+     * Bit datatype of the database.
+     */
+    BIT("BIT"),
+    /**
+     * Boolean datatype of the database.
+     */
+    BOOL("BOOL"),
+    /**
+     * Date datatype of the database.
+     */
+    DATE("DATE"),
+    /**
+     * Time datatype of the database.
+     */
+    TIME("TIME"),
+    /**
+     * DateTime datatype of the database.
+     */
+    DATE_TIME("DATETIME"),
+    /**
+     * Character datatype of the database.
+     */
+    CHAR("CHAR"),
+    /**
+     * Varchar datatype of the database.
+     */
+    VARCHAR("VARCHAR"),
+    /**
+     * Text datatype of the database.
+     */
+    TEXT("TEXT"),
+    /**
+     * Binary datatype of the database.
+     */
+    BINARY("BINARY");
 
+    /**
+     * The datatype's name.
+     */
     private final String name;
-    private final Class<?> type;
-    private final int defaultLength;
 
-    ColumnType(String name, Class<?> type, int defaultLength) {
+    /**
+     * The constructor used to set the name of the datatype to be used in the queries.
+     *
+     * @param name String
+     */
+    ColumnType(String name) {
         this.name = name;
-        this.type = type;
-        this.defaultLength = defaultLength;
     }
 
+    /**
+     * Gets the datatype's name.
+     *
+     * @return String
+     */
     public String getName() {
         return name;
-    }
-
-    public Class<?> getType() {
-        return type;
-    }
-
-    public int getDefaultLength() {
-        return defaultLength;
     }
 }

@@ -1,19 +1,28 @@
 package dev.galactic.star.database.impl;
 
+import dev.galactic.star.database.databases.MySqlDatabase;
 import dev.galactic.star.database.impl.objects.Table;
-import dev.galactic.star.database.mysql.MySqlDatabase;
 
 import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
+ * The main Class used to interact with the different databases.
+ *
  * @author PrismoidNW
  */
 public abstract class StarDatabase {
 
+
+    /**
+     * The database connection object.
+     */
     private Connection connection;
 
+    /**
+     * Whether it is in debug mode.
+     */
     private boolean debug;
 
     /**
@@ -38,6 +47,8 @@ public abstract class StarDatabase {
     }
 
     /**
+     * Checks whether the connection is not null and is not closed.
+     *
      * @return boolean(true / false) whether the connection is not null AND not closed already.
      * @throws SQLException The exception thrown by the isClosed method of the Java Connection class.
      */
@@ -69,6 +80,7 @@ public abstract class StarDatabase {
 
     /**
      * The abstract method that is called after connecting to create a database.
+     *
      * @param tables the list of classes, annotated by the DatabaseTable annotation
      * @throws SQLException if you don't have any tables to create
      */
@@ -105,7 +117,7 @@ public abstract class StarDatabase {
      * This method allows to set the debug mode to true or false
      *
      * @param debug if true, error messages with their stacktrace, internal infos and warnings will be printed
-     * out completely. if false errors and warnings will be distinct to their core information.
+     *              out completely. if false errors and warnings will be distinct to their core information.
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
