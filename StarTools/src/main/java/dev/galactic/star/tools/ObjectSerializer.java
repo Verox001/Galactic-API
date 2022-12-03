@@ -1,11 +1,24 @@
-package dev.galactic.star;
+package dev.galactic.star.tools;
 
 import java.io.*;
 
 /**
+ * The way to serialize objects. NOTE: The class you want to serialize needs to implement Java's Serializable
+ * Interface or else you will get a NotSerializableException.
+ *
  * @author PrismoidNW
  */
 public class ObjectSerializer {
+
+
+    /**
+     * The default constructor. There is no need to instantiate this class.
+     *
+     * @throws InstantiationException When you instantiate this class.
+     */
+    public ObjectSerializer() throws InstantiationException {
+        throw new InstantiationException("You shouldn't instantiate this class as it is a utility class.");
+    }
 
     /**
      * Converts an Object into an array of bytes.
@@ -21,6 +34,26 @@ public class ObjectSerializer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Converts an Object to Base64.
+     *
+     * @param object Object.
+     * @return String.
+     */
+    public static String toBase64(Object object) {
+        return Base64.encode(objectToByteArray(object));
+    }
+
+    /**
+     * Converts a Base64 String to an Object.
+     *
+     * @param base64Data Base64 String.
+     * @return Object.
+     */
+    public static Object fromBase64(String base64Data) {
+        return Base64.decode(base64Data);
     }
 
     /**

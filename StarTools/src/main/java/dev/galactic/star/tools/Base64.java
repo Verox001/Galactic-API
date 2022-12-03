@@ -1,14 +1,23 @@
-package dev.galactic.star;
+package dev.galactic.star.tools;
 
 import java.io.ByteArrayOutputStream;
 
 /**
- * This is from EmilHernvall's Java Base64 converter:
- * <a href="https://gist.github.com/EmilHernvall/953733#file-base64-java">...</a>
+ * Base64 serializer:
+ * <a href="https://gist.github.com/EmilHernvall/953733#file-base64-java">EmilHernvall's Base64 implementation</a>
  *
  * @author EmilHernvall.
  */
 public class Base64 {
+
+    /**
+     * The default constructor. There is no need to instantiate this class.
+     *
+     * @throws InstantiationException When you instantiate this class.
+     */
+    public Base64() throws InstantiationException {
+        throw new InstantiationException("You shouldn't instantiate this class as it is a utility class.");
+    }
 
     /**
      * Encodes the byte array into a Base64 String that you can use for storage, sending over the network, etc.
@@ -16,6 +25,8 @@ public class Base64 {
      * @param data An array of bytes that can be from a String, object, image, etc.
      * @return Base64 String.
      */
+
+
     public static String encode(byte[] data) {
         char[] table = {
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',

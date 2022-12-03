@@ -1,4 +1,4 @@
-package dev.galactic.star.database.mysql;
+package dev.galactic.star.database.databases;
 
 import dev.galactic.star.database.impl.StarDatabase;
 import dev.galactic.star.database.impl.mapping.annotations.DatabaseTable;
@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.Map.Entry;
 
 /**
+ * The class that implements MySQL's own syntax.
  * @author PrismoidNW
  */
 public class MySqlDatabase extends StarDatabase {

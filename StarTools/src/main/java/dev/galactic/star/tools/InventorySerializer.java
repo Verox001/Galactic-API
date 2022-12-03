@@ -1,4 +1,4 @@
-package dev.galactic.star;
+package dev.galactic.star.tools;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
@@ -8,7 +8,21 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.Serializable;
 
+/**
+ * The Class used to serialize Bukkit Inventories and convert it to a byte array or to Base64.
+ *
+ * @author PrismoidNW
+ */
 public class InventorySerializer {
+
+    /**
+     * The default constructor. There is no need to instantiate this class.
+     *
+     * @throws InstantiationException When you instantiate this class.
+     */
+    public InventorySerializer() throws InstantiationException {
+        throw new InstantiationException("You shouldn't instantiate this class as it is a utility class.");
+    }
 
     /**
      * Converts the Bukkit Inventory into a byte array.
@@ -18,6 +32,27 @@ public class InventorySerializer {
      */
     public static byte[] serialize(Inventory inventory) {
         return ObjectSerializer.objectToByteArray(new StarInventory(inventory));
+    }
+
+    /**
+     * Converts a Bukkit Inventory to Base64 String.
+     *
+     * @param inventory Bukkit Inventory.
+     * @return String
+     */
+    public static String toBase64(Inventory inventory) {
+        return Base64.encode(serialize(inventory));
+    }
+
+
+    /**
+     * Converts a Base64 String into Bukkit inventory.
+     *
+     * @param data String.
+     * @return Bukkit Inventory.
+     */
+    public static Inventory fromBase64(String data) {
+        return deserialize(Base64.decode(data));
     }
 
     /**
@@ -56,6 +91,11 @@ public class InventorySerializer {
         return inventory;
     }
 
+    /**
+     * The serializable Bukkit inventory implementation.
+     *
+     * @author PrismoidNW
+     */
     private static class StarInventory implements Serializable {
         private final ItemStack[] contents;
         private final InventoryHolder inventoryHolder;
@@ -64,6 +104,11 @@ public class InventorySerializer {
         private final String title;
         private final InventoryType inventoryType;
 
+        /**
+         * The constructor used to set the inventory values so it can be serialized.
+         *
+         * @param inventory Bukkit Inventory.
+         */
         public StarInventory(Inventory inventory) {
             this.contents = inventory.getContents();
             this.inventoryHolder = inventory.getHolder();
