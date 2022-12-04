@@ -1,8 +1,25 @@
+/*
+ * Copyright 2022-2022 Galactic Star Studios
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package dev.galactic.star.database.impl.objects;
 
 import java.util.HashMap;
 
 /**
+ * The class that has all the metadata and information relating to the Database table.
  * @author PrismoidNW
  */
 public class Table {
@@ -10,10 +27,21 @@ public class Table {
     private final String name;
     private String primaryKey = "";
 
+    /**
+     * The default constructor used to initialize the name.
+     *
+     * @param tableName Table name.
+     */
     public Table(String tableName) {
         this.name = tableName;
     }
 
+    /**
+     * The default constructor used to initialize the name and primary key.
+     *
+     * @param tableName  Table name.
+     * @param primaryKey Primary key.
+     */
     public Table(String tableName, String primaryKey) {
         this(tableName);
         this.primaryKey = primaryKey;
@@ -29,11 +57,6 @@ public class Table {
         for (Column column : columnToAdd) {
             this.columns.put(column.getName(), column);
         }
-        return this;
-    }
-
-    private Table addColumn(String columnName, Column columnToAdd) {
-        this.columns.put(columnName, columnToAdd);
         return this;
     }
 
@@ -78,7 +101,7 @@ public class Table {
     }
 
     /**
-     * Returns a human readable String for debugging purposes. It prints the table, its values, and its columns.
+     * Returns a human-readable String for debugging purposes. It prints the table, its values, and its columns.
      *
      * @return String of the table contents.
      */

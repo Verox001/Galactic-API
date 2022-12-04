@@ -16,28 +16,19 @@
             <email>prismoid@galactic-star.dev</email>
         </developer>
         <developer>
-            <name>Verox</name>
+            <name>Verox001</name>
             <email>verox@cimeyclust.com</email>
         </developer>
     </developers>
 
     <modules>
         <module>StarDatabase</module>
+        <module>StarTools</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <!-- https://mvnrepository.com/artifact/junit/junit -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>
