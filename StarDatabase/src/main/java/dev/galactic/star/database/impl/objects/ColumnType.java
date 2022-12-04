@@ -16,68 +16,75 @@
 
 package dev.galactic.star.database.impl.objects;
 
+import java.sql.Time;
+import java.sql.Date;
+
 /**
  * The enum with all the supported Column types the database can use.
- * @author PrismoidNW
+ * @author PrismoidNW & Verox001
  */
 public enum ColumnType {
     /**
      * Integer datatype of the database.
      */
-    INT("INT"),
+    INT("INT", Integer.class, 11),
     /**
      * Float datatype of the database.
      */
-    FLOAT("FLOAT"),
+    FLOAT("FLOAT", Float.class, 0),
     /**
      * Bit datatype of the database.
      */
-    BIT("BIT"),
+    BIT("BIT", Short.class, 0),
     /**
      * Boolean datatype of the database.
      */
-    BOOL("BOOL"),
+    BOOL("BOOL", Boolean.class, 0),
     /**
      * Date datatype of the database.
      */
-    DATE("DATE"),
+    DATE("DATE", java.util.Date.class, 0),
     /**
      * Time datatype of the database.
      */
-    TIME("TIME"),
+    TIME("TIME", Time.class, 0),
     /**
      * DateTime datatype of the database.
      */
-    DATE_TIME("DATETIME"),
+    DATE_TIME("DATETIME", Date.class, 0),
     /**
      * Character datatype of the database.
      */
-    CHAR("CHAR"),
+    CHAR("CHAR", Character.class, 1),
     /**
      * Varchar datatype of the database.
      */
-    VARCHAR("VARCHAR"),
+    VARCHAR("VARCHAR", String.class, 255),
     /**
      * Text datatype of the database.
      */
-    TEXT("TEXT"),
+    TEXT("TEXT", String.class, 65535),
     /**
      * Binary datatype of the database.
      */
-    BINARY("BINARY");
+    BINARY("BINARY", Byte.class, 0);
 
     /**
      * The datatype's name.
      */
     private final String name;
+    private final Class<?> type;
+    private final int defaultLength;
 
     /**
      * The constructor used to set the name of the datatype to be used in the queries.
      *
      * @param name String
      */
-    ColumnType(String name) {
+    ColumnType(String name, Class<?> type, int defaultLength) {
         this.name = name;
+        this.type = type;
+        this.defaultLength = defaultLength;
     }
 
     /**
@@ -87,5 +94,13 @@ public enum ColumnType {
      */
     public String getName() {
         return name;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public int getDefaultLength() {
+        return defaultLength;
     }
 }
