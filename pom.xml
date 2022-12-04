@@ -7,7 +7,7 @@
     <groupId>dev.galactic.star</groupId>
     <artifactId>Galactic-API</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-BETA</version>
+    <version>1.0.3-BETA</version>
 
 
     <developers>
@@ -25,6 +25,23 @@
         <module>StarDatabase</module>
         <module>StarTools</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
