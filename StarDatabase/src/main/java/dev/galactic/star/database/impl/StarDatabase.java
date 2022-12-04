@@ -3,6 +3,7 @@ package dev.galactic.star.database.impl;
 import dev.galactic.star.database.impl.objects.Table;
 import dev.galactic.star.database.mysql.MySqlDatabase;
 
+import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -71,7 +72,7 @@ public abstract class StarDatabase {
      * @param tables the list of classes, annotated by the DatabaseTable annotation
      * @throws SQLException if you don't have any tables to create
      */
-    public abstract void createTables(Class<?>... tables) throws SQLException;
+    public abstract void createTables(Class<?>... tables) throws SQLException, InvalidClassException;
 
     /**
      * Returns the connection of the database.

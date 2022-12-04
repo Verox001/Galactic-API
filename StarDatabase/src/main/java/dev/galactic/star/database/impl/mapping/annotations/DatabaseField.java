@@ -1,5 +1,7 @@
 package dev.galactic.star.database.impl.mapping.annotations;
 
+import dev.galactic.star.database.impl.objects.ColumnType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,7 +11,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DatabaseField {
     String name() default "";
-    boolean pk() default false;
+    boolean autoIncrements() default false;
     boolean canBeNull() default false;
-    boolean unique() default false;
+    int maxSize();
+    ColumnType fieldType();
 }
