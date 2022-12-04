@@ -22,6 +22,11 @@
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="gitea" />
+      <option name="name" value="gitea" />
+      <option name="url" value="https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="cimeyclust-teamcity-release" />
       <option name="name" value="cimeyclust-teamcity-release" />
       <option name="url" value="https://teamcity.cimeyclust.com/" />
