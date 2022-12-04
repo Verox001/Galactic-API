@@ -5,11 +5,16 @@
     <parent>
         <artifactId>Galactic-API</artifactId>
         <groupId>dev.galactic.star</groupId>
-        <version>1.0.0-BETA</version>
+        <version>1.0.3-BETA</version>
     </parent>
+
+
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>dev.galactic.star.db</groupId>
     <artifactId>StarDatabase</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.2-BETA</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
