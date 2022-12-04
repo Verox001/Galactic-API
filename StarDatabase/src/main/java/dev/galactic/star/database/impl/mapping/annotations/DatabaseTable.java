@@ -20,6 +20,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 
 /**
  * Declares whether a class is a Table.
@@ -32,5 +33,6 @@ public @interface DatabaseTable {
      * The table name.
      * @return String
      */
-    String tableName();
+    String tableName() default "";
+    String primaryKeyField() default "";
 }

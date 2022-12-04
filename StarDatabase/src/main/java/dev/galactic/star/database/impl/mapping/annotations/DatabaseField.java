@@ -16,6 +16,8 @@
 
 package dev.galactic.star.database.impl.mapping.annotations;
 
+import dev.galactic.star.database.impl.objects.ColumnType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,7 +36,11 @@ public @interface DatabaseField {
      */
     String name() default "";
 
-    boolean pk() default false;
+    /**
+     * Whether this field should be auto incremented on Insertion
+     * @return Boolean
+     */
+    boolean autoIncrements() default false;
 
     /**
      * Whether values can be null.
@@ -43,8 +49,15 @@ public @interface DatabaseField {
     boolean canBeNull() default false;
 
     /**
-     * Whether the values should be unique.
-     * @return Boolean.
+     * Determines the maximum length of the field.
+     * Mostly used for complex datatypes like VARCHAR, TEXT, ...
+     * @return int
      */
-    boolean unique() default false;
+    int maxSize();
+
+    /**
+     * Determines the field type, the field should have in the database.
+     * @return ColumnType
+     */
+    ColumnType fieldType();
 }
