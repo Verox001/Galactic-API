@@ -32,8 +32,26 @@ public class Table {
      *
      * @param tableName Table name.
      */
+
     public Table(String tableName) {
         this.name = tableName;
+    }
+
+
+    /**
+     * Returns a column by its name.
+     *
+     * @param columnName Name of the column.
+     * @return Column instance.
+     */
+    public Column getColumnByName(String columnName) {
+        Column column = this.columns.get(columnName);
+
+        if (column == null) {
+            throw new IllegalArgumentException("No table found with the columnName: \"" + columnName + "\"");
+        } else {
+            return column;
+        }
     }
 
     /**
