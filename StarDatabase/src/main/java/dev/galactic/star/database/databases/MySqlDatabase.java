@@ -36,10 +36,10 @@ import java.util.Map.Entry;
  */
 public class MySqlDatabase extends StarDatabase {
     @Override
-    public StarDatabase connect(String username, String password, String host, String tableName, int port,
+    public StarDatabase connect(String username, String password, String host, String database, int port,
                                 String extraQueries) {
         try {
-            String connectQuery = "jdbc:mysql://" + host + ":" + port + "/" + tableName + (extraQueries.isEmpty() ?
+            String connectQuery = "jdbc:mysql://" + host + ":" + port + "/" + database + (extraQueries.isEmpty() ?
                     "" : "?" + extraQueries);
             this.setConnection(DriverManager.getConnection(connectQuery, username, password));
         } catch (SQLException e) {

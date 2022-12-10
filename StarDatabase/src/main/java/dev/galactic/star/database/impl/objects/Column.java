@@ -22,11 +22,11 @@ package dev.galactic.star.database.impl.objects;
  * @author PrismoidNW
  */
 public class Column {
-    private String name;
-    private ColumnType fieldType;
-    private boolean canBeNull;
+    private final String name;
+    private final ColumnType fieldType;
+    private final boolean canBeNull;
     private boolean autoIncrement;
-    private int maxSize;
+    private final int maxSize;
 
     /**
      * Default constructor used to set the different metadata of a column (Name, field type, autoincrement, etc).
@@ -91,6 +91,16 @@ public class Column {
     public Column setAutoIncrement(boolean autoIncrement) {
         this.autoIncrement = autoIncrement;
         return this;
+    }
+
+    /**
+     * Returns a String with the different attributes such as fieldType, canBeNull, autoIncrement, and maxSize.
+     *
+     * @return String.
+     */
+    public String getColumnDefinition() {
+        return this.getName() + " " + this.fieldType.getName() + "(" + this.maxSize + ")" +
+                (this.canBeNull ? "" : " NOT NULL") + (this.autoIncrements() ? " AUTO_INCREMENT" : "");
     }
 
     /**
