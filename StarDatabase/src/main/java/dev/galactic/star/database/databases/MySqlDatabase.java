@@ -47,7 +47,7 @@ public class MySqlDatabase extends StarDatabase {
      * @param tableName    The name that will identify the table it is to change.
      * @param port         The port that goes along with the host url when connecting.
      * @param extraQueries The extra queries one may want to add.
-     * @return
+     * @return Instance of StarDatabase for chaining.
      */
     @Override
     public StarDatabase connect(String username, String password, String host, String tableName, int port,
