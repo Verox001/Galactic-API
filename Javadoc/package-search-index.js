@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"dev.galactic.star.database.databases"},{"l":"dev.galactic.star.database.impl"},{"l":"dev.galactic.star.database.impl.mapping.annotations"},{"l":"dev.galactic.star.database.impl.objects"},{"l":"dev.galactic.star.tools"}];updateSearchResults();
