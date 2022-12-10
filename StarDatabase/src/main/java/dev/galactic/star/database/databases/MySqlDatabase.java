@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Map.Entry;
 
 /**
@@ -163,6 +164,39 @@ public class MySqlDatabase extends StarDatabase {
         if (this.isDebug()) {
             System.out.println("Executed SQL Query");
         }
+    }
+
+    /**
+     * The method that inserts multiple pieces of data into a multiple columns.
+     *
+     * @param tableName       Name of the table where the column belongs to.
+     * @param columns         The list of columns that data is going to be inserted into.
+     * @param objectsToInsert The list of objects or data to be inserted.
+     * @return Instance of StarDatabase so that it can be chained.
+     */
+    @Override
+    public StarDatabase insert(String tableName, String[] columns, Object[] objectsToInsert) {
+        if (columns.length != objectsToInsert.length) {
+            try {
+                throw new WrongParameterException("The size of the columns needs to be the size of objects");
+            } catch (WrongParameterException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (this.isDebug()) {
+            System.out.println("Attempting to insert into the table \"" + tableName + "\"");
+        }
+        String tables = Arrays.toString(columns).replace("[", "").replace("]", "");
+        String values = Arrays.toString(objectsToInsert).replace("[", "'").replace(", ", "', '").replace("]", "'");
+        String query = "INSERT INTO " + tableName + "(" + tables + ") VALUES (" + values + ");";
+        if (this.isDebug()) {
+            System.out.println("Query String: " + query);
+        }
+        this.executeUpdate(query);
+        if (this.isDebug()) {
+            System.out.println("Done inserting into the table \"" + tableName + "\"");
+        }
+        return this;
     }
 
     /**
