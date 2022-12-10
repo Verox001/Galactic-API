@@ -91,7 +91,7 @@ public abstract class StarDatabase {
                                          String extraQueries);
 
     /**
-     * Alters the tableName's name, tableName field, add or delete existing columns.
+     * The abstract method that alters the tableName's name, tableName field, add or delete existing columns.
      *
      * @param tableName     nameOfTheTable
      * @param thingToChange The updated version of the tableName you want to update. You must get the instance of the
@@ -99,6 +99,16 @@ public abstract class StarDatabase {
      * @param objects       List of arguments depending on the thing to change.
      */
     public abstract void alterTable(String tableName, AlterTableType thingToChange, Object... objects);
+
+    /**
+     * The abstract method that inserts multiple pieces of data into a multiple columns.
+     *
+     * @param tableName       Name of the table where the column belongs to.
+     * @param columns         The list of columns that data is going to be inserted into.
+     * @param objectsToInsert The list of objects or data to be inserted.
+     * @return Instance of StarDatabase so that it can be chained.
+     */
+    public abstract StarDatabase insert(String tableName, String[] columns, Object[] objectsToInsert);
 
     /**
      * Gets the table object by its name.
@@ -206,6 +216,6 @@ public abstract class StarDatabase {
         ADD_COLUMN,
         MODIFY_COLUMN,
         DROP_COLUMN,
-        RENAME_TABLE;
+        RENAME_TABLE
     }
 }
