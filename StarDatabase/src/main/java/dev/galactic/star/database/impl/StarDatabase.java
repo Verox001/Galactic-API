@@ -22,6 +22,10 @@ import dev.galactic.star.database.impl.objects.Table;
 import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The main Class used to interact with the different databases.
@@ -30,7 +34,7 @@ import java.sql.SQLException;
  */
 public abstract class StarDatabase {
 
-
+    public final Set<Table> tables = new HashSet<>();
     /**
      * The database connection object.
      */
@@ -87,25 +91,65 @@ public abstract class StarDatabase {
                                          String extraQueries);
 
     /**
+     * The abstract method that alters the tableName's name, tableName field, add or delete existing columns.
+     *
+     * @param tableName     nameOfTheTable
+     * @param thingToChange The updated version of the tableName you want to update. You must get the instance of the
+     *                      tableName and then change it to your desires.
+     * @param objects       List of arguments depending on the thing to change.
+     */
+    public abstract void alterTable(String tableName, AlterTableType thingToChange, Object... objects);
+
+    /**
+     * The abstract method that inserts multiple pieces of data into a multiple columns.
+     *
+     * @param tableName       Name of the table where the column belongs to.
+     * @param columns         The list of columns that data is going to be inserted into.
+     * @param objectsToInsert The list of objects or data to be inserted.
+     * @return Instance of StarDatabase so that it can be chained.
+     */
+    public abstract StarDatabase insert(String tableName, String[] columns, Object[] objectsToInsert);
+
+    /**
+     * Gets the table object by its name.
+     *
+     * @param tableName Name of the table.
+     * @return Table object.
+     */
+    public Table getTableByName(String tableName) {
+        List<Table> tableStream = this.getTables()
+                .stream()
+                .filter(e -> e.getName()
+                        .equals(tableName))
+                .collect(Collectors.toList());
+        if (tableStream.size() == 0) {
+            throw new IllegalArgumentException("No table found with the name: \"" + tableName + "\"");
+        } else {
+            return tableStream.get(0);
+        }
+    }
+
+    /**
      * The abstract method that is called after connecting to create a database.
      *
-     * @param tables the list of tables to create
-     * @throws SQLException if you don't have any tables to create
+     * @param tables the list of tables to create.
+     * @throws SQLException if you don't have any tables to create.
      */
     public abstract void createTables(Table... tables) throws SQLException;
 
     /**
      * The abstract method that is called after connecting to create a database.
      *
-     * @param tables the list of classes, annotated by the DatabaseTable annotation
-     * @throws SQLException if you don't have any tables to create
+     * @param tables the list of classes, annotated by the DatabaseTable annotation.
+     * @throws SQLException if you don't have any tables to create.
      */
     public abstract void createTables(Class<?>... tables) throws SQLException, InvalidClassException;
+
 
     /**
      * Returns the connection of the database.
      *
-     * @return Connection
+     * @return Connection.
      */
     public Connection getConnection() {
         return connection;
@@ -121,7 +165,7 @@ public abstract class StarDatabase {
     }
 
     /**
-     * This method allows to check the debug mode from the current Database
+     * This method allows to check the debug mode from the current Database.
      *
      * @return A boolean, which is true if debug mode is enabled and false if not.
      */
@@ -130,7 +174,7 @@ public abstract class StarDatabase {
     }
 
     /**
-     * This method allows to set the debug mode to true or false
+     * This method allows to set the debug mode to true or false.
      *
      * @param debug if true, error messages with their stacktrace, internal infos and warnings will be printed
      *              out completely. if false errors and warnings will be distinct to their core information.
@@ -145,11 +189,33 @@ public abstract class StarDatabase {
      * @throws SQLException when either it is null or already closed.
      */
     public void disconnect() throws SQLException {
+        if (this.isDebug()) {
+            System.out.println("Attempting to disconnect...");
+        }
         if (connection == null) {
             throw new SQLException("Connection is \"null\".");
         } else if (!connection.isClosed()) {
             throw new SQLException("Connection is already closed.");
         }
         connection.close();
+        if (this.isDebug()) {
+            System.out.println("Disconnected");
+        }
+    }
+
+    public Set<Table> getTables() {
+        return tables;
+    }
+
+    /**
+     * The types of changeable content in the table.
+     *
+     * @author PrismoidNW
+     */
+    public enum AlterTableType {
+        ADD_COLUMN,
+        MODIFY_COLUMN,
+        DROP_COLUMN,
+        RENAME_TABLE
     }
 }
