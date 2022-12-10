@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Declares whether the field is a parameter.
  * @author Verox001
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DatabaseField {
     /**
