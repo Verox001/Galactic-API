@@ -47,7 +47,7 @@ public class MySqlDatabase extends StarDatabase {
      * @param tableName    The name that will identify the table it is to change.
      * @param port         The port that goes along with the host url when connecting.
      * @param extraQueries The extra queries one may want to add.
-     * @return
+     * @return StarDatabase instance so connecting can be done in one line
      */
     @Override
     public StarDatabase connect(String username, String password, String host, String tableName, int port,
@@ -153,7 +153,7 @@ public class MySqlDatabase extends StarDatabase {
             case RENAME_TABLE: {
                 builder.append("RENAME TO ")
                         .append(objects[0]);
-
+                this.getTableByName(tableName).setName((String) objects[0]);
                 if (this.isDebug()) {
                     System.out.println("Query String: " + builder);
                 }

@@ -24,7 +24,7 @@ import java.util.HashMap;
  */
 public class Table {
     private final HashMap<String, Column> columns = new HashMap<>();
-    private final String name;
+    private String name;
     private String primaryKey = "";
 
     /**
@@ -116,6 +116,14 @@ public class Table {
     public Table setPrimaryKey(String primaryKey) {
         this.primaryKey = primaryKey;
         return this;
+    }
+
+    /**
+     * Set the table's name to something different.
+     * @param name New table name.
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
