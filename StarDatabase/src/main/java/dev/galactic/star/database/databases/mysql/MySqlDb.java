@@ -16,17 +16,10 @@
 
 package dev.galactic.star.database.databases.mysql;
 
-import dev.galactic.star.database.databases.mysql.data.MySqlDatabase;
-import dev.galactic.star.database.databases.mysql.data.MySqlTable;
-import dev.galactic.star.database.databases.mysql.data.MySqlUser;
-import dev.galactic.star.database.impl.annotations.Database;
-import dev.galactic.star.database.impl.annotations.Table;
-import dev.galactic.star.database.impl.annotations.TableColumn;
-import dev.galactic.star.database.impl.exceptions.AnnotationNotFoundException;
+import dev.galactic.star.database.impl.exceptions.InvalidAccessException;
 import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
+import dev.galactic.star.database.impl.exceptions.InvalidQueryException;
 
-import java.lang.reflect.Field;
-import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -36,7 +29,6 @@ import java.util.Arrays;
 /**
  * The database API used to interact with a MySQL database.
  */
-
 public class MySqlDb {
     private Connection connection;
     private String host;
@@ -45,7 +37,6 @@ public class MySqlDb {
     private String username;
     private String password;
     private String parameters;
-
 
     /**
      * A constructor for the MySQL database that includes any extra queries you want to use.
@@ -102,40 +93,7 @@ public class MySqlDb {
      */
     public static boolean isInvalid(Connection connection) {
         try {
-            return connection == null || connection.isClosed();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Returns an instance of MySqlUser to interact with users.
-     *
-     * @return MySqlUser instance.
-     * @see MySqlUser
-     */
-    public MySqlUser getUserUtilClass() {
-        return new MySqlUser(this);
-    }
-
-    /**
-     * Returns an instance of MySqlDatabase to interact with the databases.
-     *
-     * @return MySqlDatabase instance.
-     * @see MySqlDatabase
-     */
-    public MySqlDatabase getDatabaseMgr() {
-        return new MySqlDatabase(this);
-    }
-
-    /**
-     * Checks whether there is a connection already established to the database.
-     *
-     * @return true or false.
-     */
-    public boolean isConnected() {
-        try {
-            return !MySqlDb.isInvalid(this.connection) && !this.connection.isClosed();
+            return connection == null || !connection.isValid(10);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -149,9 +107,6 @@ public class MySqlDb {
      * @see MySqlDb
      */
     public MySqlDb connect() throws InvalidConnectionException {
-        if (this.isConnected()) {
-            throw new InvalidConnectionException("There is already a connection to the database.");
-        }
         boolean parametersBlank = this.parameters == null || this.parameters.isEmpty() || parameters.matches("\\s");
         boolean databaseBlank = this.databaseName == null || this.databaseName.isEmpty() || databaseName.matches("\\s");
         String databaseQuery = databaseBlank ? "" : "/" + databaseName;
@@ -169,197 +124,25 @@ public class MySqlDb {
     }
 
     /**
-     * Alters the table.
+     * Switches to the database specified.
      *
-     * @return MySqlTable instance.
-     * @see MySqlTable
+     * @param databaseName The name of the database to switch to.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
      */
-    public MySqlTable getTableMgr() {
-        return new MySqlTable(this);
-    }
-
-    /**
-     * @param objects A varargs of objects that have the
-     * @return True if successful, else false.
-     */
-    public MySqlDb createTables(Object... objects) {
-        for (Object o : objects) {
-            Class<?> c = o.getClass();
-            if (c.isAnnotationPresent(Database.class)) {
-                this.createTableFromDbAnnotation(o);
-            } else if (c.isAnnotationPresent(Table.class)) {
-                this.createTableFromTableAnnotation(o);
-            } else {
-                try {
-                    throw new AnnotationNotFoundException("There should either be a @Database or @Table annotation in" +
-                            " the object.");
-                } catch (AnnotationNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+    public MySqlDb selectDatabase(String databaseName) throws InvalidAccessException {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
             }
+            connection.setCatalog(databaseName);
+            this.databaseName = databaseName;
+        } catch (SQLException e) {
+            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
         }
         return this;
-    }
-
-    private String createModifyColumnQuery(TableColumn colAnnotation, Object object,
-                                           String tableName, Field field) throws IllegalAccessException {
-        MySqlTable sqlTable = this.getTableMgr();
-        StringBuilder builder = new StringBuilder();
-        if (sqlTable.tableExists(tableName) && sqlTable.columnExists(tableName, colAnnotation.name())) {
-            builder.append(" MODIFY ")
-                    .append(colAnnotation.name())
-                    .append(" ")
-                    .append(field.get(object))
-                    .append("(")
-                    .append(colAnnotation.maxDisplayed())
-                    .append(") ")
-                    .append(colAnnotation.notNull() ? "NOT NULL " : "")
-                    .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-                    .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
-                    .append(colAnnotation.foreignKey())
-                    .append(",");
-        }
-        return builder.toString();
-    }
-
-    private void createTableFromTableAnnotation(Object object) {
-        try {
-            Class<?> c = object.getClass();
-            if (!c.isAnnotationPresent(Table.class)) {
-                throw new InvalidParameterException("Table class doesn't have @Table annotation. It must have one.");
-            }
-
-            Table tbl = c.getAnnotation(Table.class);
-            StringBuilder b = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tbl.table_name() + "(");
-            for (Field f : c.getDeclaredFields()) {
-                f.setAccessible(true);
-                if (!f.isAnnotationPresent(TableColumn.class)) {
-                    throw new InvalidParameterException("Table class doesn't have @TableColumn annotation. It must " +
-                            "have " +
-                            "one.");
-                }
-                TableColumn col = f.getAnnotation(TableColumn.class);
-                if (!col.autoCreate()) {
-                    continue;
-                }
-                this.createTableQueryBuilder(col, object, b, f);
-                //If the table exists already and there are new columns, it adds the columns using the ALTER TABLE
-                // query.
-                this.createAlterTableQuery(col, object, b, tbl.table_name(), f);
-            }
-            String query;
-            if (b.substring(0, 6).equals("ALTER ")) {
-                query = b.replace(b.length() - 2, b.length(), ";").toString();
-            } else {
-                query = b.replace(b.length() - 2, b.length(), ");").toString();
-            }
-
-            try (PreparedStatement stmt = this.connection.prepareStatement(query)) {
-                stmt.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void createAlterTableQuery(TableColumn colAnnotation, Object object, StringBuilder builder,
-                                       String tableName, Field field) throws IllegalAccessException {
-        MySqlTable sqlTable = this.getTableMgr();
-        if (sqlTable.tableExists(tableName)) {
-            builder.delete(0, builder.length());
-
-            builder.append("ALTER TABLE ")
-                    .append(tableName);
-            if (!sqlTable.columnExists(tableName, colAnnotation.name())) {
-                field.setAccessible(true);
-                builder.append(" ADD ")
-                        .append(colAnnotation.name())
-                        .append(" ")
-                        .append(field.get(object))
-                        .append("(")
-                        .append(colAnnotation.maxDisplayed())
-                        .append(") ")
-                        .append(colAnnotation.notNull() ? "NOT NULL " : "")
-                        .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-                        .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
-                        .append(colAnnotation.foreignKey())
-                        .append(",");
-            } else {
-                builder.append(this.createModifyColumnQuery(colAnnotation, object, tableName, field));
-            }
-            field.setAccessible(false);
-        }
-    }
-
-    private void createTableQueryBuilder(TableColumn colAnnotation, Object object, StringBuilder builder,
-                                         Field field) throws IllegalAccessException {
-        builder.append(colAnnotation.name())
-                .append(" ")
-                .append(field.get(object))
-                .append("(")
-                .append(colAnnotation.maxDisplayed())
-                .append(") ")
-                .append(colAnnotation.notNull() ? "NOT NULL " : "")
-                .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-                .append(colAnnotation.primaryKey() ? "PRIMARY KEY" : "")
-                .append(" ")
-                .append(colAnnotation.foreignKey())
-                .append(",");
-    }
-
-    private void createTableFromDbAnnotation(Object object) {
-        try {
-            MySqlDatabase utilityClass = this.getDatabaseMgr();
-            Class<?> c = object.getClass();
-            Database db = c.getAnnotation(Database.class);
-            if (db.create_database()) {
-                utilityClass.createDatabases(db.name());
-            }
-            if (!this.getDatabaseMgr().databaseExists(db.name())) {
-                throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
-            }
-            if (db.switchToDb()) {
-                utilityClass.switchDatabase(db.name());
-            }
-            // Loops through all fields that are annotated with @Table
-            for (Field field1 : c.getDeclaredFields()) {
-                field1.setAccessible(true);
-                if (!field1.isAnnotationPresent(Table.class)) continue;
-                Table tbl = field1.getAnnotation(Table.class);
-                StringBuilder b = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tbl.table_name() + "(");
-                for (Field field2 : field1.get(object).getClass().getDeclaredFields()) {
-                    Object o2 = field1.get(object);
-                    field2.setAccessible(true);
-                    if (!field2.isAnnotationPresent(TableColumn.class)) {
-                        throw new InvalidParameterException("Table class doesn't have @TableColumn annotation. It " +
-                                "must have one.");
-                    }
-                    TableColumn col = field2.getAnnotation(TableColumn.class);
-                    if (!col.autoCreate()) {
-                        continue;
-                    }
-                    this.createTableQueryBuilder(col, o2, b, field2);
-                    this.createAlterTableQuery(col, o2, b, tbl.table_name(), field2);
-                    field2.setAccessible(false);
-                }
-                field1.setAccessible(false);
-                String query = null;
-                if (b.substring(0, 6).equals("ALTER ")) {
-                    query = b.replace(b.length() - 2, b.length(), ";").toString();
-                } else {
-                    query = b.replace(b.length() - 2, b.length(), ");").toString();
-                }
-                try (PreparedStatement stmt = this.connection.prepareStatement(query)) {
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -369,59 +152,26 @@ public class MySqlDb {
      * @param columns List of the column names.
      * @param values  List of the objects you want to insert into the columns specified.
      * @return Current class instance.
-     * @see MySqlDb
      */
     public MySqlDb insert(String table, String[] columns, Object[] values) {
-
-        String columnQuery = Arrays.toString(columns)
-                .replace("[", "(")
-                .replace("]", ")");
-        String valueQuery = Arrays.toString(values)
-                .replace("[", "('")
-                .replace("]", "')")
-                .replace(", ", "','");
+        if (MySqlDb.isInvalid(this.connection)) {
+            try {
+                throw new InvalidConnectionException("Connection is invalid.");
+            } catch (InvalidConnectionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        String columnQuery = Arrays.toString(columns).replace('[', '(').replace(']', ')');
+        String valueQuery = Arrays.toString(values).replace('[', '(').replace(']', ')');
         try (PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO " + table + columnQuery + " " +
                 "VALUES " + valueQuery + ";")) {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
             stmt.executeUpdate();
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Method for updating values of a MySQL table.
-     *
-     * @param table   Table name.
-     * @param columns List of the column names.
-     * @param values  List of the objects you want to update.
-     * @param comparableColumn The column name to compare.
-     * @param comparableValue The value in the column to compare.
-     * @return Current class instance.
-     * @see MySqlDb
-     */
-    public MySqlDb update(String table, String[] columns, Object[] values, String comparableColumn,
-                          String comparableValue) {
-
-        StringBuilder setQuery = new StringBuilder();
-        for (int i = 0; i < columns.length; i++) {
-            if (i == columns.length - 1) {
-                setQuery.append(columns[i] + " = " + "'" + values[i].toString() + "'");
-                continue;
+        } catch (SQLException e) {
+            try {
+                throw new InvalidQueryException("Invalid mysql query: " + e.getMessage());
+            } catch (InvalidQueryException ex) {
+                throw new RuntimeException(ex);
             }
-            setQuery.append(columns[i] + " = " + "'" + values[i].toString() + "', ");
-        }
-        try (PreparedStatement stmt = this.connection.prepareStatement("UPDATE " + table + " SET " + setQuery +
-                " WHERE " + comparableColumn + " = " + comparableValue + ";")) {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
-            stmt.executeUpdate();
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
         }
         return this;
     }
@@ -442,7 +192,7 @@ public class MySqlDb {
      */
     public void setConnection(Connection connection) {
         try {
-            if (MySqlDb.isInvalid(connection)) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the connection when connection is invalid");
             }
             this.connection = connection;
@@ -455,17 +205,16 @@ public class MySqlDb {
      * Closes the connection to the database.
      *
      * @return Current instance of MySqlDb.
-     * @throws InvalidConnectionException When the connection object is null or already closed.
      * @see MySqlDb
      */
-    public MySqlDb close() throws InvalidConnectionException {
+    public MySqlDb close() {
         try {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
             } else {
                 this.connection.close();
             }
-        } catch (SQLException e) {
+        } catch (InvalidConnectionException | SQLException e) {
             throw new RuntimeException(e);
         }
         return this;
@@ -487,7 +236,7 @@ public class MySqlDb {
      */
     public void setHost(String host) {
         try {
-            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the database host when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }
@@ -513,7 +262,7 @@ public class MySqlDb {
      */
     public void setPort(int port) {
         try {
-            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the port when connection is null or disconnected. "
                         + "Please disconnect and try again.");
             }
@@ -565,7 +314,7 @@ public class MySqlDb {
      */
     public void setUsername(String username) {
         try {
-            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the username when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }
@@ -591,7 +340,7 @@ public class MySqlDb {
      */
     public void setPassword(String password) {
         try {
-            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the password when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }
@@ -616,10 +365,11 @@ public class MySqlDb {
      * @param parameters String parameters list.
      */
     public void setParameters(String parameters) {
+
         try {
-            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the username when connection is null or " +
-                        "connected/disconnected. Please disconnect and try again.");
+                        "disconnected. Please disconnect and try again.");
             }
             this.parameters = parameters;
         } catch (InvalidConnectionException e) {
