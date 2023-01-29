@@ -20,11 +20,10 @@ import dev.galactic.star.database.impl.exceptions.InvalidAccessException;
 import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
 import dev.galactic.star.database.impl.exceptions.InvalidQueryException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * The database API used to interact with a MySQL database.
@@ -37,6 +36,7 @@ public class MySqlDb {
     private String username;
     private String password;
     private String parameters;
+
 
     /**
      * A constructor for the MySQL database that includes any extra queries you want to use.
@@ -124,6 +124,53 @@ public class MySqlDb {
     }
 
     /**
+     * Creates a database if you have the permission.
+     *
+     * @param databaseName Name of the database to create.
+     * @return Current instance of MySqlDb.
+     * @throws InvalidAccessException When you don't have privileges or access is denied.
+     */
+    public MySqlDb createDatabase(String databaseName) throws InvalidAccessException {
+        try (PreparedStatement stmt = this.connection.prepareStatement("CREATE DATABASE " + databaseName + ";")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+        }
+        return this;
+    }
+
+    /**
+     * Returns an array of the names of databases that exist.
+     *
+     * @return List&lt;String&gt; of the database names.
+     */
+    public List<String> showDatabases() {
+        return this.showDatabases(null);
+    }
+
+    /**
+     * Returns an array of the names of databases that exist, but with a certain pattern.
+     *
+     * @return List&lt;String&gt; of the database names.
+     */
+    public List<String> showDatabases(String pattern) {
+        List<String> databaseNames = new ArrayList<>();
+        String patternQuery = pattern == null || pattern.isEmpty() ? ";" : "WHERE " + pattern + ";";
+        try (PreparedStatement stmt = this.connection.prepareStatement("SHOW DATABASES" + patternQuery);
+             ResultSet resultSet = stmt.executeQuery()) {
+            while (resultSet.next()) {
+                int columnsCount = resultSet.getMetaData().getColumnCount();
+                for (int i = 1; i <= columnsCount; i++) {
+                    databaseNames.add(resultSet.getObject(i).toString());
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return databaseNames;
+    }
+
+    /**
      * Switches to the database specified.
      *
      * @param databaseName The name of the database to switch to.
@@ -145,6 +192,16 @@ public class MySqlDb {
         return this;
     }
 
+    public MySqlDb deleteDatabase(String databaseName) throws InvalidAccessException {
+        try (PreparedStatement stmt = this.connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName + ";"
+        )) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+        }
+        return this;
+    }
+
     /**
      * Method for inserting values into a MySQL table.
      *
@@ -161,8 +218,13 @@ public class MySqlDb {
                 throw new RuntimeException(e);
             }
         }
-        String columnQuery = Arrays.toString(columns).replace('[', '(').replace(']', ')');
-        String valueQuery = Arrays.toString(values).replace('[', '(').replace(']', ')');
+        String columnQuery = Arrays.toString(columns)
+                .replace("[", "(")
+                .replace("]", ")");
+        String valueQuery = Arrays.toString(values)
+                .replace("[", "('")
+                .replace("]", "')")
+                .replace(", ", "','");
         try (PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO " + table + columnQuery + " " +
                 "VALUES " + valueQuery + ";")) {
             stmt.executeUpdate();
