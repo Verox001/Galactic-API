@@ -93,7 +93,20 @@ public class MySqlDb {
      */
     public static boolean isInvalid(Connection connection) {
         try {
-            return connection == null || !connection.isValid(10);
+            return connection == null || connection.isClosed();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Checks whether there is a connection already established to the database.
+     *
+     * @return true or false.
+     */
+    public boolean isConnected() {
+        try {
+            return !MySqlDb.isInvalid(this.connection) && !this.connection.isClosed();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -107,6 +120,9 @@ public class MySqlDb {
      * @see MySqlDb
      */
     public MySqlDb connect() throws InvalidConnectionException {
+        if (this.isConnected()) {
+            throw new InvalidConnectionException("There is already a connection to the database.");
+        }
         boolean parametersBlank = this.parameters == null || this.parameters.isEmpty() || parameters.matches("\\s");
         boolean databaseBlank = this.databaseName == null || this.databaseName.isEmpty() || databaseName.matches("\\s");
         String databaseQuery = databaseBlank ? "" : "/" + databaseName;
@@ -128,13 +144,22 @@ public class MySqlDb {
      *
      * @param databaseName Name of the database to create.
      * @return Current instance of MySqlDb.
-     * @throws InvalidQueryException When the database exists, access denied, or insufficient privileges.
+     * @see MySqlDb
      */
-    public MySqlDb createDatabase(String databaseName) throws InvalidQueryException {
+    public MySqlDb createDatabase(String databaseName) {
         try (PreparedStatement stmt = this.connection.prepareStatement("CREATE DATABASE " + databaseName + ";")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new InvalidQueryException("Invalid Query: " + e.getMessage());
+            try {
+                throw new InvalidQueryException("Invalid Query: " + e.getMessage());
+            } catch (InvalidQueryException ex) {
+                throw new RuntimeException(ex);
+            }
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
         }
         return this;
     }
@@ -154,8 +179,16 @@ public class MySqlDb {
      * @return List&lt;String&gt; of the database names.
      */
     public List<String> showDatabases(String pattern) {
+
         List<String> databaseNames = new ArrayList<>();
         String patternQuery = pattern == null || pattern.isEmpty() ? ";" : "WHERE " + pattern + ";";
+        if (MySqlDb.isInvalid(this.connection)) {
+            try {
+                throw new InvalidConnectionException("Connection is invalid.");
+            } catch (InvalidConnectionException e) {
+                throw new RuntimeException(e);
+            }
+        }
         try (PreparedStatement stmt = this.connection.prepareStatement("SHOW DATABASES" + patternQuery);
              ResultSet resultSet = stmt.executeQuery()) {
             while (resultSet.next()) {
@@ -165,7 +198,11 @@ public class MySqlDb {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            try {
+                throw new InvalidQueryException("Unable to get list of databases: " + e.getMessage());
+            } catch (InvalidQueryException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         return databaseNames;
     }
@@ -177,7 +214,7 @@ public class MySqlDb {
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
-    public MySqlDb selectDatabase(String databaseName) throws InvalidAccessException {
+    public MySqlDb selectDatabase(String databaseName) {
         try {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
@@ -185,19 +222,77 @@ public class MySqlDb {
             connection.setCatalog(databaseName);
             this.databaseName = databaseName;
         } catch (SQLException e) {
-            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+            try {
+                throw new InvalidQueryException("Cannot select database specified: " + e.getMessage());
+            } catch (InvalidQueryException ex) {
+                throw new RuntimeException(ex);
+            }
         } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
     }
 
-    public MySqlDb deleteDatabase(String databaseName) throws InvalidAccessException {
+    /**
+     * Deletes, or drops, the database with the name specified.
+     *
+     * @param databaseName Name to delete.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb deleteDatabase(String databaseName) {
         try (PreparedStatement stmt = this.connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName + ";"
         )) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+            try {
+                throw new InvalidAccessException("Unable to delete database: " + e.getMessage());
+            } catch (InvalidAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * @param username Username of the user.
+     * @param password Password of the user.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb createUser(String username, String password) {
+        return this.createUser("", username, password);
+    }
+
+    /**
+     * @param hostname The host to access it from. Put null or blank string if you want to be able to access it from
+     *                 any host on the server.
+     * @param username Username of the user.
+     * @param password Password of the user.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb createUser(String hostname, String username, String password) {
+        String userQuery = hostname == null || hostname.isEmpty() ? username + "@%" : username + "@" + hostname;
+        try (PreparedStatement stmt = this.connection.prepareStatement("CREATE USER " + userQuery + " IDENTIFIED BY " +
+                "'" + password + "';")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            try {
+                throw new InvalidAccessException("Can't create the user due to insufficient privileges.");
+            } catch (InvalidAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
         }
         return this;
     }
@@ -209,15 +304,10 @@ public class MySqlDb {
      * @param columns List of the column names.
      * @param values  List of the objects you want to insert into the columns specified.
      * @return Current class instance.
+     * @see MySqlDb
      */
     public MySqlDb insert(String table, String[] columns, Object[] values) {
-        if (MySqlDb.isInvalid(this.connection)) {
-            try {
-                throw new InvalidConnectionException("Connection is invalid.");
-            } catch (InvalidConnectionException e) {
-                throw new RuntimeException(e);
-            }
-        }
+
         String columnQuery = Arrays.toString(columns)
                 .replace("[", "(")
                 .replace("]", ")");
@@ -227,6 +317,9 @@ public class MySqlDb {
                 .replace(", ", "','");
         try (PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO " + table + columnQuery + " " +
                 "VALUES " + valueQuery + ";")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
             stmt.executeUpdate();
         } catch (SQLException e) {
             try {
@@ -234,6 +327,8 @@ public class MySqlDb {
             } catch (InvalidQueryException ex) {
                 throw new RuntimeException(ex);
             }
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
         }
         return this;
     }
@@ -269,14 +364,14 @@ public class MySqlDb {
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
-    public MySqlDb close() {
+    public MySqlDb close() throws InvalidConnectionException {
         try {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
             } else {
                 this.connection.close();
             }
-        } catch (InvalidConnectionException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return this;
