@@ -128,13 +128,13 @@ public class MySqlDb {
      *
      * @param databaseName Name of the database to create.
      * @return Current instance of MySqlDb.
-     * @throws InvalidAccessException When you don't have privileges or access is denied.
+     * @throws InvalidQueryException When the database exists, access denied, or insufficient privileges.
      */
-    public MySqlDb createDatabase(String databaseName) throws InvalidAccessException {
+    public MySqlDb createDatabase(String databaseName) throws InvalidQueryException {
         try (PreparedStatement stmt = this.connection.prepareStatement("CREATE DATABASE " + databaseName + ";")) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+            throw new InvalidQueryException("Invalid Query: " + e.getMessage());
         }
         return this;
     }
