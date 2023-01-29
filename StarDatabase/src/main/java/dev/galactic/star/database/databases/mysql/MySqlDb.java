@@ -1,0 +1,379 @@
+/*
+ * Copyright 2022 Galactic Star Studios
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package dev.galactic.star.database.databases.mysql;
+
+import dev.galactic.star.database.impl.exceptions.InvalidAccessException;
+import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
+import dev.galactic.star.database.impl.exceptions.InvalidQueryException;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Arrays;
+
+/**
+ * The database API used to interact with a MySQL database.
+ */
+public class MySqlDb {
+    private Connection connection;
+    private String host;
+    private int port;
+    private String databaseName;
+    private String username;
+    private String password;
+    private String parameters;
+
+    /**
+     * A constructor for the MySQL database that includes any extra queries you want to use.
+     *
+     * @param host         Host of the server.
+     * @param port         Port of the database that is running on.
+     * @param databaseName Name of the database in the database you want to interact with. Can be null or blank if you
+     *                     don't want to interact just yet.
+     * @param username     Username of the login details.
+     * @param password     Password of the login details.
+     * @param parameters   Any other attributes and values you want to use in the connection. Checkout
+     *                     <a href="https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html" target="_blank">MySQL Dev website</a> for more info on the different parameters.
+     */
+    public MySqlDb(String host, int port, String databaseName, String username, String password, String parameters) {
+        this.host = host;
+        this.port = port;
+        this.databaseName = databaseName;
+        this.username = username;
+        this.password = password;
+        this.parameters = parameters;
+    }
+
+    /**
+     * The base constructor for the MySQL database that includes.
+     *
+     * @param host         Host of the server.
+     * @param port         Port of MySQL that is running on.
+     * @param databaseName Name of the database in the MySQL database you want to interact with. Can be null or blank
+     *                     if you
+     *                     don't want to interact just yet.
+     * @param username     Username of the login details.
+     * @param password     Password of the login details.
+     */
+    public MySqlDb(String host, int port, String databaseName, String username, String password) {
+        this(host, port, databaseName, username, password, null);
+    }
+
+    /**
+     * A constructor that takes in an already existing connection.
+     *
+     * @param connection The Java connection object.
+     *                   <a href="https://www.javatpoint.com/example-to-connect-to-the-mysql-database" target="_blank">Here are some examples.</a>
+     */
+    public MySqlDb(Connection connection) {
+        this.connection = connection;
+    }
+
+    /**
+     * Checks whether the connection is null or isn't connected (Invalid).
+     *
+     * @param connection Java Connection object.
+     * @return true or false.
+     * @see Connection
+     */
+    public static boolean isInvalid(Connection connection) {
+        try {
+            return connection == null || !connection.isValid(10);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * The method that connects to MySQL.
+     *
+     * @return Current instance of the class.
+     * @throws InvalidConnectionException If the program can't connect to MySQL.
+     * @see MySqlDb
+     */
+    public MySqlDb connect() throws InvalidConnectionException {
+        boolean parametersBlank = this.parameters == null || this.parameters.isEmpty() || parameters.matches("\\s");
+        boolean databaseBlank = this.databaseName == null || this.databaseName.isEmpty() || databaseName.matches("\\s");
+        String databaseQuery = databaseBlank ? "" : "/" + databaseName;
+        String parameters = parametersBlank ? "" : "?" + this.parameters;
+        String parameterString = databaseQuery + parameters;
+        try {
+            this.connection = DriverManager.getConnection(String.format("jdbc:mysql://%s:%d%s", host, port,
+                    parameterString
+            ), this.username, this.password);
+        } catch (SQLException e) {
+            throw new InvalidConnectionException("Can't connect to the database. Please check details and try again: "
+                    + e.getMessage());
+        }
+        return this;
+    }
+
+    /**
+     * Switches to the database specified.
+     *
+     * @param databaseName The name of the database to switch to.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb selectDatabase(String databaseName) throws InvalidAccessException {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
+            connection.setCatalog(databaseName);
+            this.databaseName = databaseName;
+        } catch (SQLException e) {
+            throw new InvalidAccessException("Unknown database or insufficient privileges: " + e.getMessage());
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Method for inserting values into a MySQL table.
+     *
+     * @param table   Table name.
+     * @param columns List of the column names.
+     * @param values  List of the objects you want to insert into the columns specified.
+     * @return Current class instance.
+     */
+    public MySqlDb insert(String table, String[] columns, Object[] values) {
+        if (MySqlDb.isInvalid(this.connection)) {
+            try {
+                throw new InvalidConnectionException("Connection is invalid.");
+            } catch (InvalidConnectionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        String columnQuery = Arrays.toString(columns).replace('[', '(').replace(']', ')');
+        String valueQuery = Arrays.toString(values).replace('[', '(').replace(']', ')');
+        try (PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO " + table + columnQuery + " " +
+                "VALUES " + valueQuery + ";")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            try {
+                throw new InvalidQueryException("Invalid mysql query: " + e.getMessage());
+            } catch (InvalidQueryException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Getter for connection.
+     *
+     * @return Java Connection object.
+     */
+    public Connection getConnection() {
+        return connection;
+    }
+
+    /**
+     * Setter for the connection of the database.
+     *
+     * @param connection Java Connection object.
+     */
+    public void setConnection(Connection connection) {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the connection when connection is invalid");
+            }
+            this.connection = connection;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Closes the connection to the database.
+     *
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb close() {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            } else {
+                this.connection.close();
+            }
+        } catch (InvalidConnectionException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Getter for connection.
+     *
+     * @return Java Connection object.
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * Setter for the database host.
+     *
+     * @param host String host.
+     */
+    public void setHost(String host) {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the database host when connection is null or " +
+                        "disconnected. Please disconnect and try again.");
+            }
+            this.host = host;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Getter for the MySQL port its running on.
+     *
+     * @return Port of MySQL.
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * Setter for the port of the database.
+     *
+     * @param port Integer port.
+     */
+    public void setPort(int port) {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the port when connection is null or disconnected. "
+                        + "Please disconnect and try again.");
+            }
+            this.port = port;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Getter for database name.
+     *
+     * @return database name. It is null if one wasn't specified.
+     */
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    /**
+     * Setter for database name.
+     *
+     * @param databaseName database name to set.
+     */
+    public void setDatabaseName(String databaseName) {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the database name when connection is null or " +
+                        "disconnected. Please disconnect and try again.");
+            }
+            this.databaseName = databaseName;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Getter for MySQL username.
+     *
+     * @return Username as a String.
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * Setter for the login username.
+     *
+     * @param username Username as a String.
+     */
+    public void setUsername(String username) {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the username when connection is null or " +
+                        "disconnected. Please disconnect and try again.");
+            }
+            this.username = username;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Getter for the MySQL password.
+     *
+     * @return Password as a String.
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Setter for the login password.
+     *
+     * @param password Password to set.
+     */
+    public void setPassword(String password) {
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the password when connection is null or " +
+                        "disconnected. Please disconnect and try again.");
+            }
+            this.password = password;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Getter for connection parameters.
+     *
+     * @return Parameters used in the connection.
+     */
+    public String getParameters() {
+        return parameters;
+    }
+
+    /**
+     * Setter for the connection parameters.
+     *
+     * @param parameters String parameters list.
+     */
+    public void setParameters(String parameters) {
+
+        try {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Can't change the username when connection is null or " +
+                        "disconnected. Please disconnect and try again.");
+            }
+            this.parameters = parameters;
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2022 Galactic Star Studios
+ * Copyright 2022 Galactic Star Studios
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package dev.galactic.star.database.impl.exceptions;
 
-public class WrongParameterException extends Exception {
+/**
+ * The exception that is thrown when the connection is null or invalid
+ */
+public class InvalidConnectionException extends Exception {
 
-    public WrongParameterException(String s) {
+    public InvalidConnectionException(String s) {
         super(s);
-    }
-
-    public WrongParameterException(String s, Throwable throwable) {
-        super(s, throwable);
     }
 }
