@@ -16,9 +16,7 @@
 
 package dev.galactic.star.database.databases.mysql;
 
-import dev.galactic.star.database.impl.exceptions.InvalidAccessException;
 import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
-import dev.galactic.star.database.impl.exceptions.InvalidQueryException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -153,11 +151,7 @@ public class MySqlDb {
             }
             stmt.executeUpdate();
         } catch (SQLException e) {
-            try {
-                throw new InvalidQueryException("Invalid Query: " + e.getMessage());
-            } catch (InvalidQueryException ex) {
-                throw new RuntimeException(ex);
-            }
+             throw new RuntimeException(e);
         } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
@@ -169,8 +163,8 @@ public class MySqlDb {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> showDatabases() {
-        return this.showDatabases(null);
+    public List<String> getDatabases() {
+        return this.getDatabases(null);
     }
 
     /**
@@ -178,10 +172,9 @@ public class MySqlDb {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> showDatabases(String pattern) {
-
+    public List<String> getDatabases(String pattern) {
         List<String> databaseNames = new ArrayList<>();
-        String patternQuery = pattern == null || pattern.isEmpty() ? ";" : "WHERE " + pattern + ";";
+        String patternQuery = pattern == null || pattern.isEmpty() ? ";" : " WHERE " + pattern + ";";
         if (MySqlDb.isInvalid(this.connection)) {
             try {
                 throw new InvalidConnectionException("Connection is invalid.");
@@ -198,11 +191,7 @@ public class MySqlDb {
                 }
             }
         } catch (SQLException e) {
-            try {
-                throw new InvalidQueryException("Unable to get list of databases: " + e.getMessage());
-            } catch (InvalidQueryException ex) {
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(e);
         }
         return databaseNames;
     }
@@ -222,11 +211,7 @@ public class MySqlDb {
             connection.setCatalog(databaseName);
             this.databaseName = databaseName;
         } catch (SQLException e) {
-            try {
-                throw new InvalidQueryException("Cannot select database specified: " + e.getMessage());
-            } catch (InvalidQueryException ex) {
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(e);
         } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
@@ -248,11 +233,7 @@ public class MySqlDb {
             }
             stmt.executeUpdate();
         } catch (SQLException e) {
-            try {
-                throw new InvalidAccessException("Unable to delete database: " + e.getMessage());
-            } catch (InvalidAccessException ex) {
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(e);
         } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
@@ -278,20 +259,118 @@ public class MySqlDb {
      * @see MySqlDb
      */
     public MySqlDb createUser(String hostname, String username, String password) {
-        String userQuery = hostname == null || hostname.isEmpty() ? username + "@%" : username + "@" + hostname;
+        String userQuery = hostname == null || hostname.isEmpty() ? "'" + username + "'@'%'" :
+                "'" + username + "'@'" + hostname + "'";
         try (PreparedStatement stmt = this.connection.prepareStatement("CREATE USER " + userQuery + " IDENTIFIED BY " +
                 "'" + password + "';")) {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
             }
+            System.out.println("CREATE USER " + userQuery + " IDENTIFIED BY " +
+                    "'" + password + "';");
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Deletes the user.
+     *
+     * @param accountNames A String varargs
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb deleteUser(String host, String... accountNames) {
+        if (accountNames.length == 0) {
+            throw new IllegalArgumentException("There needs to be at least one user in the varargs.");
+        }
+        String userHost = host == null || host.isEmpty() ? "%" : host;
+        String usersQuery = Arrays.toString(accountNames)
+                .replace("[", "'")
+                .replace("]", "'@'" + userHost + "';")
+                .replace(", ", "'@'" + userHost + "',");
+        try (PreparedStatement stmt = this.connection.prepareStatement("DROP USER " + usersQuery)) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
+            // stmt.executeUpdate();
+        } catch (SQLException | InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Returns an array of the names of users that exist, but with a certain pattern.
+     *
+     * @return List&lt;String&gt; of the database names.
+     */
+    public List<String> getUsers(String pattern) {
+        List<String> databaseNames = new ArrayList<>();
+        String patternQuery = pattern == null || pattern.isEmpty() ? ";" : " WHERE " + pattern + ";";
+        if (MySqlDb.isInvalid(this.connection)) {
+            try {
+                throw new InvalidConnectionException("Connection is invalid.");
+            } catch (InvalidConnectionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT user FROM user" + patternQuery);
+             ResultSet resultSet = stmt.executeQuery()) {
+            while (resultSet.next()) {
+                int columnsCount = resultSet.getMetaData().getColumnCount();
+                for (int i = 1; i <= columnsCount; i++) {
+                    databaseNames.add(resultSet.getObject(i).toString());
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return databaseNames;
+    }
+
+    /**
+     * Returns an array of the names of users that exist.
+     *
+     * @return List&lt;String&gt; of the database names.
+     */
+    public List<String> getUsers() {
+        return this.getUsers("");
+    }
+
+    /**
+     * Changes a specific user's password. You don't need to specify a host because it defaults to % which kinda
+     * means it is universal
+     *
+     * @param username    The username of the user who you want to change the password.
+     * @param newPassword the new password.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb changeUserPassword(String username, String newPassword) {
+        return this.changeUserPassword("%", username, newPassword);
+    }
+
+    /**
+     * Changes a specific user's password.
+     *
+     * @param host        The hostname that appears after the @ in a query. Such as root@galactic-star.dev
+     * @param username    The username of the user who you want to change the password.
+     * @param newPassword the new password.
+     * @return Current instance of MySqlDb.
+     * @see MySqlDb
+     */
+    public MySqlDb changeUserPassword(String host, String username, String newPassword) {
+        String user = "'" + username + "'@'" + host + "'";
+
+        try (PreparedStatement stmt =
+                     this.connection.prepareStatement("ALTER USER " + user + " IDENTIFIED BY '" + newPassword + "';")) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            try {
-                throw new InvalidAccessException("Can't create the user due to insufficient privileges.");
-            } catch (InvalidAccessException ex) {
-                throw new RuntimeException(ex);
-            }
-        } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
@@ -322,11 +401,7 @@ public class MySqlDb {
             }
             stmt.executeUpdate();
         } catch (SQLException e) {
-            try {
-                throw new InvalidQueryException("Invalid mysql query: " + e.getMessage());
-            } catch (InvalidQueryException ex) {
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(e);
         } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
