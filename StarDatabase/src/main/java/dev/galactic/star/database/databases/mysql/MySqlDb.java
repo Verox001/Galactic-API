@@ -269,9 +269,7 @@ public class MySqlDb {
             System.out.println("CREATE USER " + userQuery + " IDENTIFIED BY " +
                     "'" + password + "';");
             stmt.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidConnectionException e) {
+        } catch (SQLException | InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
@@ -400,9 +398,7 @@ public class MySqlDb {
                 throw new InvalidConnectionException("Connection is invalid.");
             }
             stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidConnectionException e) {
+        } catch (SQLException | InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
