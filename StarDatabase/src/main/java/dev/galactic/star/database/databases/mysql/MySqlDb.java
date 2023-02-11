@@ -191,6 +191,8 @@ public class MySqlDb {
     /**
      * Returns an array of the names of databases that exist, but with a certain pattern.
      *
+     * @param pattern The pattern to filter out the databases that only match it. Will update this as soon as I can
+     *                find a source with all the patterns.
      * @return List&lt;String&gt; of the database names.
      */
     public List<String> getDatabases(String pattern) {
@@ -296,6 +298,8 @@ public class MySqlDb {
      * Deletes the user.
      *
      * @param accountNames A String varargs
+     * @param host The host name that the user is tied to. galactic-star.dev would be the host name. So it would end
+     *             up like john@galactic-star.dev
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
@@ -324,9 +328,8 @@ public class MySqlDb {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> getUsers(String pattern) {
+    public List<String> getUsers() {
         List<String> databaseNames = new ArrayList<>();
-        String patternQuery = pattern == null || pattern.isEmpty() ? ";" : " WHERE " + pattern + ";";
         if (MySqlDb.isInvalid(this.connection)) {
             try {
                 throw new InvalidConnectionException("Connection is invalid.");
@@ -334,7 +337,7 @@ public class MySqlDb {
                 throw new RuntimeException(e);
             }
         }
-        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT user FROM user" + patternQuery);
+        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT user FROM user;");
              ResultSet resultSet = stmt.executeQuery()) {
             while (resultSet.next()) {
                 int columnsCount = resultSet.getMetaData().getColumnCount();
@@ -460,15 +463,6 @@ public class MySqlDb {
     }
 
     /**
-     * Returns an array of the names of users that exist.
-     *
-     * @return List&lt;String&gt; of the database names.
-     */
-    public List<String> getUsers() {
-        return this.getUsers("");
-    }
-
-    /**
      * Changes a specific user's password. You don't need to specify a host because it defaults to % which kinda
      * means it is universal
      *
@@ -559,7 +553,7 @@ public class MySqlDb {
 
     /**
      * Closes the connection to the database.
-     *
+     * @throws InvalidConnectionException When the connection object is null or already closed.
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
