@@ -1,5 +1,3 @@
-
-dev.galactic.star.database
 dev.galactic.star.database.databases.mysql
 dev.galactic.star.database.databases.mysql.data
 dev.galactic.star.database.impl.annotations
