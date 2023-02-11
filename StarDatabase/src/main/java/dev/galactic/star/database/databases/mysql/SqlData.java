@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 /**
  * The class that handles finding, and updating values.
  */
-public class SqlDocument {
+public class SqlData {
     private final LinkedHashSet<String> values = new LinkedHashSet<>();
     private final String table;
     private final Connection connection;
@@ -35,7 +35,7 @@ public class SqlDocument {
      * @param connection Your connection to the database.
      * @param table      Name of the table to search.
      */
-    public SqlDocument(Connection connection, String table) {
+    public SqlData(Connection connection, String table) {
         if (connection == null || MySqlDb.isInvalid(connection)) {
             try {
                 throw new InvalidConnectionException("Connection is invalid.");
@@ -47,7 +47,7 @@ public class SqlDocument {
         this.table = table;
     }
 
-    public SqlDocument append(String column, Object value, String type) {
+    public SqlData append(String column, Object value, String type) {
         String stringToAdd = column + " = '" + value + "' ";
         if (this.values.size() > 0) {
             stringToAdd = type + " " + column + " = '" + value + "' ";
@@ -56,7 +56,7 @@ public class SqlDocument {
         return this;
     }
 
-    public SqlDocument appendLessThan(String column, int value, String type) {
+    public SqlData appendLessThan(String column, int value, String type) {
         String stringToAdd = column + " < " + value + " ";
         if (this.values.size() > 0) {
             stringToAdd = type + " " + column + " < " + value + " ";
@@ -65,7 +65,7 @@ public class SqlDocument {
         return this;
     }
 
-    public SqlDocument appendGreaterThan(String column, int value, String type) {
+    public SqlData appendGreaterThan(String column, int value, String type) {
         String stringToAdd = column + " > " + value + " ";
         if (this.values.size() > 0) {
             stringToAdd = type + " " + column + " > " + value + " ";
@@ -82,7 +82,7 @@ public class SqlDocument {
         return builder.toString();
     }
 
-    public SqlDocument clearAll() {
+    public SqlData clearAll() {
         this.values.clear();
         return this;
     }
