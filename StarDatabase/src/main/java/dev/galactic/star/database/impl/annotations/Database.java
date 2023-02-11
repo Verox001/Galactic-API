@@ -39,7 +39,7 @@ public @interface Database {
      *
      * @return True or false.
      */
-    boolean switchToDb() default false;
+    boolean switchToDb() default true;
 
     /**
      * Whether it should create the database with the name specified. Defaults to false.

@@ -224,7 +224,7 @@ public class MySqlDb {
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
-    public MySqlDb selectDatabase(String databaseName) {
+    public MySqlDb switchDatabase(String databaseName) {
         try {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
@@ -422,7 +422,9 @@ public class MySqlDb {
             if (!databaseExists(db.name())) {
                 throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
             }
-
+            if (db.switchToThisDatabase()) {
+                this.switchDatabase(db.name());
+            }
             // Loops through all fields that are annotated with @Table
             for (Field field1 : c.getDeclaredFields()) {
                 field1.setAccessible(true);
