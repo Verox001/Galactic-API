@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * Extra data that is used when interacting with the database
+/*8
+Extra data that is used when interacting with the database.
  */
 package dev.galactic.star.database.databases.mysql.data;

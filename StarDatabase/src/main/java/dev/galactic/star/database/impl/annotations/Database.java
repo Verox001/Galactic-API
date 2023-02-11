@@ -35,13 +35,6 @@ public @interface Database {
     String name();
 
     /**
-     * Whether to switch to the database after being created (or select it).
-     *
-     * @return True or false.
-     */
-    boolean switchToDb() default true;
-
-    /**
      * Whether it should create the database with the name specified. Defaults to false.
      *
      * @return True or false.

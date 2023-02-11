@@ -16,8 +16,13 @@
 
 package dev.galactic.star.database.databases.mysql;
 
+import dev.galactic.star.database.impl.annotations.Database;
+import dev.galactic.star.database.impl.annotations.Table;
+import dev.galactic.star.database.impl.annotations.TableColumn;
 import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
 
+import java.lang.reflect.Field;
+import java.security.InvalidParameterException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +31,7 @@ import java.util.List;
 /**
  * The database API used to interact with a MySQL database.
  */
+
 public class MySqlDb {
     private Connection connection;
     private String host;
@@ -145,17 +151,32 @@ public class MySqlDb {
      * @see MySqlDb
      */
     public MySqlDb createDatabase(String databaseName) {
-        try (PreparedStatement stmt = this.connection.prepareStatement("CREATE DATABASE " + databaseName + ";")) {
+        try (PreparedStatement stmt =
+                     this.connection.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName + ";")) {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
             }
             stmt.executeUpdate();
-        } catch (SQLException e) {
-             throw new RuntimeException(e);
-        } catch (InvalidConnectionException e) {
+        } catch (SQLException | InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
+    }
+
+    /**
+     * Creates from the object specified.
+     *
+     * @param object Object that has the @Database annotation.
+     * @return Current instance.
+     * @see Database
+     * @see MySqlDb
+     */
+    public MySqlDb createDatabase(Object object) {
+        Class<?> clazz = object.getClass();
+        if (!clazz.isAnnotationPresent(Database.class)) {
+            throw new InvalidParameterException("That object doesn't have a Database annotation.");
+        }
+        return this.createDatabase(clazz.getAnnotation(Database.class).name());
     }
 
     /**
@@ -210,9 +231,7 @@ public class MySqlDb {
             }
             connection.setCatalog(databaseName);
             this.databaseName = databaseName;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidConnectionException e) {
+        } catch (SQLException | InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
@@ -232,9 +251,7 @@ public class MySqlDb {
                 throw new InvalidConnectionException("Connection is invalid.");
             }
             stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidConnectionException e) {
+        } catch (SQLException | InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
         return this;
@@ -329,6 +346,115 @@ public class MySqlDb {
             throw new RuntimeException(e);
         }
         return databaseNames;
+    }
+
+    /**
+     * @param objects A varargs of objects that have the
+     * @return True if successful, else false.
+     */
+    public boolean createTables(Object... objects) {
+        for (Object o : objects) {
+            Class<?> c = o.getClass();
+            if (c.isAnnotationPresent(Database.class)) {
+                this.createTableFromDbAnnotation(o);
+            } else {
+                this.createTableFromTableAnnotation(o);
+            }
+        }
+        return true;
+    }
+
+    private void createTableFromTableAnnotation(Object object) {
+        try {
+            Class<?> c = object.getClass();
+            if (!c.isAnnotationPresent(Table.class)) {
+                throw new InvalidParameterException("Table class doesn't have @Table annotation. It must have one.");
+            }
+
+            Table tbl = c.getAnnotation(Table.class);
+            StringBuilder b = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tbl.table_name() + "(");
+            for (Field f : c.getDeclaredFields()) {
+                f.setAccessible(true);
+                if (!f.isAnnotationPresent(TableColumn.class)) {
+                    throw new InvalidParameterException("Table class doesn't have @TableColumn annotation. It must " +
+                            "have " +
+                            "one.");
+                }
+                createTableQueryBuilder(object, b, f);
+            }
+
+            try (PreparedStatement stmt = this.connection.prepareStatement(b.replace(b.length() - 2, b.length(),
+                    ");"
+            ).toString())) {
+                stmt.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void createTableQueryBuilder(Object object, StringBuilder b, Field f) throws IllegalAccessException {
+        TableColumn col = f.getAnnotation(TableColumn.class);
+        b.append(col.name())
+                .append(" ")
+                .append(f.get(object))
+                .append("(")
+                .append(col.maxDisplayed())
+                .append(") ")
+                .append(col.notNull() ? "NOT NULL " : "")
+                .append(col.autoIncrement() ? "AUTO_INCREMENT " : "")
+                .append(col.primaryKey() ? "PRIMARY KEY" : "")
+                .append(" ")
+                .append(col.foreignKey())
+                .append(",");
+        f.setAccessible(false);
+    }
+
+    private void createTableFromDbAnnotation(Object object) {
+        try {
+            Class<?> c = object.getClass();
+            Database db = c.getAnnotation(Database.class);
+            if (db.create_database()) {
+                this.createDatabase(db.name());
+            }
+            if (!databaseExists(db.name())) {
+                throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
+            }
+
+            // Loops through all fields that are annotated with @Table
+            for (Field field1 : c.getDeclaredFields()) {
+                field1.setAccessible(true);
+                if (!field1.isAnnotationPresent(Table.class)) continue;
+                Table tbl = field1.getAnnotation(Table.class);
+
+                StringBuilder b = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tbl.table_name() + "(");
+                for (Field field2 : field1.get(object).getClass().getDeclaredFields()) {
+                    Object o2 = field1.get(object);
+                    field2.setAccessible(true);
+                    if (!field2.isAnnotationPresent(TableColumn.class)) {
+                        throw new InvalidParameterException("Table class doesn't have @TableColumn annotation. It " +
+                                "must have one.");
+                    }
+                    createTableQueryBuilder(o2, b, field2);
+                }
+                field1.setAccessible(false);
+                try (PreparedStatement stmt = this.connection.prepareStatement(b.replace(b.length() - 2, b.length(),
+                        ");"
+                ).toString())) {
+                    stmt.executeUpdate();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean databaseExists(String name) {
+        return this.getDatabases().contains(name);
     }
 
     /**
@@ -593,11 +719,10 @@ public class MySqlDb {
      * @param parameters String parameters list.
      */
     public void setParameters(String parameters) {
-
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
                 throw new InvalidConnectionException("Can't change the username when connection is null or " +
-                        "disconnected. Please disconnect and try again.");
+                        "connected/disconnected. Please disconnect and try again.");
             }
             this.parameters = parameters;
         } catch (InvalidConnectionException e) {

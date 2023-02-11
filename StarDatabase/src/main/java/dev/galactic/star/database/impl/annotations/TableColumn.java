@@ -41,14 +41,6 @@ public @interface TableColumn {
      */
     int maxDisplayed();
 
-
-    /**
-     * Whether to automatically create the column on creation of the table.
-     *
-     * @return True or false.
-     */
-    boolean autoCreate() default true;
-
     /**
      * The primary key for each table to be unique.
      *
@@ -76,11 +68,4 @@ public @interface TableColumn {
      * @return True or false.
      */
     boolean notNull() default false;
-
-    /**
-     * Provides a default string for the column.
-     *
-     * @return Default value as String
-     */
-    String defaultString() default "";
 }
