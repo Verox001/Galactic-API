@@ -114,7 +114,7 @@ public class MySqlDb {
      * @return MySqlUser instance.
      * @see MySqlUser
      */
-    public MySqlUser getUserClass() {
+    public MySqlUser getUserUtilClass() {
         return new MySqlUser(this);
     }
 
@@ -124,7 +124,7 @@ public class MySqlDb {
      * @return MySqlDatabase instance.
      * @see MySqlDatabase
      */
-    public MySqlDatabase getDatabaseClass() {
+    public MySqlDatabase getDatabaseUtilClass() {
         return new MySqlDatabase(this);
     }
 
@@ -174,7 +174,7 @@ public class MySqlDb {
      * @return MySqlTable instance.
      * @see MySqlTable
      */
-    public MySqlTable alterTable() {
+    public MySqlTable getTableUtilClass() {
         return new MySqlTable(this);
     }
 
@@ -243,7 +243,7 @@ public class MySqlDb {
 
     private void createAlterTableQueryBuilder(TableColumn colAnnotation, Object object, StringBuilder builder,
                                               String tableName, Field field) throws IllegalAccessException {
-        MySqlTable sqlTable = this.alterTable();
+        MySqlTable sqlTable = this.getTableUtilClass();
         if (sqlTable.tableExists(tableName) && !sqlTable.columnExists(tableName, colAnnotation.name())) {
             field.setAccessible(true);
             System.out.println("PASSED IF");
@@ -287,13 +287,13 @@ public class MySqlDb {
 
     private void createTableFromDbAnnotation(Object object) {
         try {
-            MySqlDatabase utilityClass = this.getDatabaseClass();
+            MySqlDatabase utilityClass = this.getDatabaseUtilClass();
             Class<?> c = object.getClass();
             Database db = c.getAnnotation(Database.class);
             if (db.create_database()) {
                 utilityClass.createDatabase(db.name());
             }
-            if (!this.getDatabaseClass().databaseExists(db.name())) {
+            if (!this.getDatabaseUtilClass().databaseExists(db.name())) {
                 throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
             }
             if (db.switchToDb()) {
