@@ -246,8 +246,6 @@ public class MySqlDb {
         MySqlTable sqlTable = this.getTableUtilClass();
         if (sqlTable.tableExists(tableName) && !sqlTable.columnExists(tableName, colAnnotation.name())) {
             field.setAccessible(true);
-            System.out.println("PASSED IF");
-            System.out.println("ALTER 1: " + builder);
             builder.delete(0, builder.length());
 
             builder.append("ALTER TABLE ")
@@ -264,7 +262,6 @@ public class MySqlDb {
                     .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
                     .append(colAnnotation.foreignKey())
                     .append(",");
-            System.out.println("ALTER 2: " + builder + ", NAME: " + colAnnotation.name());
             field.setAccessible(false);
         }
     }
@@ -291,7 +288,7 @@ public class MySqlDb {
             Class<?> c = object.getClass();
             Database db = c.getAnnotation(Database.class);
             if (db.create_database()) {
-                utilityClass.createDatabase(db.name());
+                utilityClass.createDatabases(db.name());
             }
             if (!this.getDatabaseUtilClass().databaseExists(db.name())) {
                 throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
@@ -384,7 +381,7 @@ public class MySqlDb {
      */
     public void setConnection(Connection connection) {
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(connection)) {
                 throw new InvalidConnectionException("Can't change the connection when connection is invalid");
             }
             this.connection = connection;
@@ -481,7 +478,7 @@ public class MySqlDb {
      */
     public void setDatabaseName(String databaseName) {
         try {
-            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
+            if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Can't change the database name when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }

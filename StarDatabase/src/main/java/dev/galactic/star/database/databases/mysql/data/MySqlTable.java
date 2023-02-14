@@ -52,6 +52,7 @@ public class MySqlTable {
     /**
      * Drops the column in the table specified.
      *
+     * @param tableName  Name of the table that houses the column.
      * @param columnName Name of the column to drop.
      * @return MySqlTable instance.
      */
