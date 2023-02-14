@@ -72,21 +72,19 @@ public class MySqlDatabase {
     /**
      * Creates a database if you have the permission.
      *
-     * @param names Names of the databases to create.
+     * @param databaseName Name of the database to create.
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
-    public MySqlDatabase createDatabases(String... names) {
-        for (String name : names) {
-            try (PreparedStatement stmt =
-                         this.connection.prepareStatement("CREATE DATABASE IF NOT EXISTS " + name + ";")) {
-                if (MySqlDb.isInvalid(this.connection)) {
-                    throw new InvalidConnectionException("Connection is invalid.");
-                }
-                stmt.executeUpdate();
-            } catch (SQLException | InvalidConnectionException e) {
-                throw new RuntimeException(e);
+    public MySqlDatabase createDatabase(String databaseName) {
+        try (PreparedStatement stmt =
+                     this.connection.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName + ";")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
             }
+            stmt.executeUpdate();
+        } catch (SQLException | InvalidConnectionException e) {
+            throw new RuntimeException(e);
         }
         return this;
     }
@@ -94,19 +92,17 @@ public class MySqlDatabase {
     /**
      * Creates from the object specified.
      *
-     * @param classes Classes that has the @Database annotation.
+     * @param object Object that has the @Database annotation.
      * @return Current instance.
      * @see Database
      * @see MySqlDb
      */
-    public MySqlDatabase createDatabases(Class<?>... classes) {
-        for (Class<?> clazz : classes) {
-            if (!clazz.isAnnotationPresent(Database.class)) {
-                throw new InvalidParameterException("That object doesn't have a Database annotation.");
-            }
-            this.createDatabases(clazz.getAnnotation(Database.class).name());
+    public MySqlDatabase createDatabase(Object object) {
+        Class<?> clazz = object.getClass();
+        if (!clazz.isAnnotationPresent(Database.class)) {
+            throw new InvalidParameterException("That object doesn't have a Database annotation.");
         }
-        return this;
+        return this.createDatabase(clazz.getAnnotation(Database.class).name());
     }
 
     /**
@@ -114,8 +110,8 @@ public class MySqlDatabase {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> retrieveDatabases() {
-        return this.retrieveDatabases(null);
+    public List<String> getDatabases() {
+        return this.getDatabases(null);
     }
 
     /**
@@ -125,7 +121,7 @@ public class MySqlDatabase {
      *                find a source with all the patterns.
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> retrieveDatabases(String pattern) {
+    public List<String> getDatabases(String pattern) {
         List<String> databaseNames = new ArrayList<>();
         String patternQuery = pattern == null || pattern.isEmpty() ? ";" : " WHERE " + pattern + ";";
         if (MySqlDb.isInvalid(this.connection)) {
@@ -156,38 +152,26 @@ public class MySqlDatabase {
      * @return True or false.
      */
     public boolean databaseExists(String name) {
-        return this.retrieveDatabases().contains(name);
+        return this.getDatabases().contains(name);
     }
 
     /**
      * Deletes, or drops, the database with the name specified.
      *
-     * @param names Names of the databases to delete.
+     * @param databaseName Name to delete.
      * @return Current instance of MySqlDb.
      * @see MySqlDb
      */
-    public MySqlDatabase deleteDatabases(String... names) {
-        for (String name : names) {
-            try (PreparedStatement stmt = this.connection.prepareStatement("DROP DATABASE IF EXISTS " + name + ";"
-            )) {
-                if (MySqlDb.isInvalid(this.connection)) {
-                    throw new InvalidConnectionException("Connection is invalid.");
-                }
-                stmt.executeUpdate();
-            } catch (SQLException | InvalidConnectionException e) {
-                throw new RuntimeException(e);
+    public MySqlDatabase deleteDatabase(String databaseName) {
+        try (PreparedStatement stmt = this.connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName + ";"
+        )) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
             }
+            stmt.executeUpdate();
+        } catch (SQLException | InvalidConnectionException e) {
+            throw new RuntimeException(e);
         }
         return this;
-    }
-    
-    /**
-     * Returns an instance of MySqlDb.
-     *
-     * @return MySqlDb instance.
-     * @see MySqlDb
-     */
-    public MySqlDb instance() {
-        return this.dbInstance;
     }
 }

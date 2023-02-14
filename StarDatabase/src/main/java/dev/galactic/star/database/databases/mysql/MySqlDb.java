@@ -16,17 +16,22 @@
 
 package dev.galactic.star.database.databases.mysql;
 
+import dev.galactic.star.database.databases.mysql.data.MySqlDatabase;
+import dev.galactic.star.database.databases.mysql.data.MySqlTable;
+import dev.galactic.star.database.databases.mysql.data.MySqlUser;
 import dev.galactic.star.database.impl.annotations.Database;
 import dev.galactic.star.database.impl.annotations.Table;
 import dev.galactic.star.database.impl.annotations.TableColumn;
+import dev.galactic.star.database.impl.exceptions.AnnotationNotFoundException;
 import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
 
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * The database API used to interact with a MySQL database.
@@ -104,6 +109,26 @@ public class MySqlDb {
     }
 
     /**
+     * Returns an instance of MySqlUser to interact with users.
+     *
+     * @return MySqlUser instance.
+     * @see MySqlUser
+     */
+    public MySqlUser getUserClass() {
+        return new MySqlUser(this);
+    }
+
+    /**
+     * Returns an instance of MySqlDatabase to interact with the databases.
+     *
+     * @return MySqlDatabase instance.
+     * @see MySqlDatabase
+     */
+    public MySqlDatabase getDatabaseClass() {
+        return new MySqlDatabase(this);
+    }
+
+    /**
      * Checks whether there is a connection already established to the database.
      *
      * @return true or false.
@@ -144,227 +169,36 @@ public class MySqlDb {
     }
 
     /**
-     * Creates a database if you have the permission.
+     * Alters the table.
      *
-     * @param databaseName Name of the database to create.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
+     * @return MySqlTable instance.
+     * @see MySqlTable
      */
-    public MySqlDb createDatabase(String databaseName) {
-        try (PreparedStatement stmt =
-                     this.connection.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName + ";")) {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
-            stmt.executeUpdate();
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Creates from the object specified.
-     *
-     * @param object Object that has the @Database annotation.
-     * @return Current instance.
-     * @see Database
-     * @see MySqlDb
-     */
-    public MySqlDb createDatabase(Object object) {
-        Class<?> clazz = object.getClass();
-        if (!clazz.isAnnotationPresent(Database.class)) {
-            throw new InvalidParameterException("That object doesn't have a Database annotation.");
-        }
-        return this.createDatabase(clazz.getAnnotation(Database.class).name());
-    }
-
-    /**
-     * Returns an array of the names of databases that exist.
-     *
-     * @return List&lt;String&gt; of the database names.
-     */
-    public List<String> getDatabases() {
-        return this.getDatabases(null);
-    }
-
-    /**
-     * Returns an array of the names of databases that exist, but with a certain pattern.
-     *
-     * @param pattern The pattern to filter out the databases that only match it. Will update this as soon as I can
-     *                find a source with all the patterns.
-     * @return List&lt;String&gt; of the database names.
-     */
-    public List<String> getDatabases(String pattern) {
-        List<String> databaseNames = new ArrayList<>();
-        String patternQuery = pattern == null || pattern.isEmpty() ? ";" : " WHERE " + pattern + ";";
-        if (MySqlDb.isInvalid(this.connection)) {
-            try {
-                throw new InvalidConnectionException("Connection is invalid.");
-            } catch (InvalidConnectionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        try (PreparedStatement stmt = this.connection.prepareStatement("SHOW DATABASES" + patternQuery);
-             ResultSet resultSet = stmt.executeQuery()) {
-            while (resultSet.next()) {
-                int columnsCount = resultSet.getMetaData().getColumnCount();
-                for (int i = 1; i <= columnsCount; i++) {
-                    databaseNames.add(resultSet.getObject(i).toString());
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return databaseNames;
-    }
-
-    /**
-     * Switches to the database specified.
-     *
-     * @param databaseName The name of the database to switch to.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb switchDatabase(String databaseName) {
-        try {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
-            connection.setCatalog(databaseName);
-            this.databaseName = databaseName;
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Deletes, or drops, the database with the name specified.
-     *
-     * @param databaseName Name to delete.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb deleteDatabase(String databaseName) {
-        try (PreparedStatement stmt = this.connection.prepareStatement("DROP DATABASE IF EXISTS " + databaseName + ";"
-        )) {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
-            stmt.executeUpdate();
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
-    /**
-     * @param username Username of the user.
-     * @param password Password of the user.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb createUser(String username, String password) {
-        return this.createUser("", username, password);
-    }
-
-    /**
-     * @param hostname The host to access it from. Put null or blank string if you want to be able to access it from
-     *                 any host on the server.
-     * @param username Username of the user.
-     * @param password Password of the user.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb createUser(String hostname, String username, String password) {
-        String userQuery = hostname == null || hostname.isEmpty() ? "'" + username + "'@'%'" :
-                "'" + username + "'@'" + hostname + "'";
-        try (PreparedStatement stmt = this.connection.prepareStatement("CREATE USER " + userQuery + " IDENTIFIED BY " +
-                "'" + password + "';")) {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
-            System.out.println("CREATE USER " + userQuery + " IDENTIFIED BY " +
-                    "'" + password + "';");
-            stmt.execute();
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Deletes the user.
-     *
-     * @param accountNames A String varargs
-     * @param host The host name that the user is tied to. galactic-star.dev would be the host name. So it would end
-     *             up like john@galactic-star.dev
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb deleteUser(String host, String... accountNames) {
-        if (accountNames.length == 0) {
-            throw new IllegalArgumentException("There needs to be at least one user in the varargs.");
-        }
-        String userHost = host == null || host.isEmpty() ? "%" : host;
-        String usersQuery = Arrays.toString(accountNames)
-                .replace("[", "'")
-                .replace("]", "'@'" + userHost + "';")
-                .replace(", ", "'@'" + userHost + "',");
-        try (PreparedStatement stmt = this.connection.prepareStatement("DROP USER " + usersQuery)) {
-            if (MySqlDb.isInvalid(this.connection)) {
-                throw new InvalidConnectionException("Connection is invalid.");
-            }
-            // stmt.executeUpdate();
-        } catch (SQLException | InvalidConnectionException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Returns an array of the names of users that exist, but with a certain pattern.
-     *
-     * @return List&lt;String&gt; of the database names.
-     */
-    public List<String> getUsers() {
-        List<String> databaseNames = new ArrayList<>();
-        if (MySqlDb.isInvalid(this.connection)) {
-            try {
-                throw new InvalidConnectionException("Connection is invalid.");
-            } catch (InvalidConnectionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT user FROM user;");
-             ResultSet resultSet = stmt.executeQuery()) {
-            while (resultSet.next()) {
-                int columnsCount = resultSet.getMetaData().getColumnCount();
-                for (int i = 1; i <= columnsCount; i++) {
-                    databaseNames.add(resultSet.getObject(i).toString());
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return databaseNames;
+    public MySqlTable alterTable() {
+        return new MySqlTable(this);
     }
 
     /**
      * @param objects A varargs of objects that have the
      * @return True if successful, else false.
      */
-    public boolean createTables(Object... objects) {
+    public MySqlDb createTables(Object... objects) {
         for (Object o : objects) {
             Class<?> c = o.getClass();
             if (c.isAnnotationPresent(Database.class)) {
                 this.createTableFromDbAnnotation(o);
-            } else {
+            } else if (c.isAnnotationPresent(Table.class)) {
                 this.createTableFromTableAnnotation(o);
+            } else {
+                try {
+                    throw new AnnotationNotFoundException("There should either be a @Database or @Table annotation in" +
+                            " the object.");
+                } catch (AnnotationNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-        return true;
+        return this;
     }
 
     private void createTableFromTableAnnotation(Object object) {
@@ -383,12 +217,21 @@ public class MySqlDb {
                             "have " +
                             "one.");
                 }
-                createTableQueryBuilder(object, b, f);
+                TableColumn col = f.getAnnotation(TableColumn.class);
+                if (!col.autoCreate()) {
+                    continue;
+                }
+                this.createTableQueryBuilder(col, object, b, f);
+                this.createAlterTableQueryBuilder(col, object, b, tbl.table_name(), f);
+            }
+            String query = null;
+            if (b.substring(0, 6).equals("ALTER ")) {
+                query = b.replace(b.length() - 2, b.length(), ";").toString();
+            } else {
+                query = b.replace(b.length() - 2, b.length(), ");").toString();
             }
 
-            try (PreparedStatement stmt = this.connection.prepareStatement(b.replace(b.length() - 2, b.length(),
-                    ");"
-            ).toString())) {
+            try (PreparedStatement stmt = this.connection.prepareStatement(query)) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -398,42 +241,69 @@ public class MySqlDb {
         }
     }
 
-    private void createTableQueryBuilder(Object object, StringBuilder b, Field f) throws IllegalAccessException {
-        TableColumn col = f.getAnnotation(TableColumn.class);
-        b.append(col.name())
+    private void createAlterTableQueryBuilder(TableColumn colAnnotation, Object object, StringBuilder builder,
+                                              String tableName, Field field) throws IllegalAccessException {
+        MySqlTable sqlTable = this.alterTable();
+        if (sqlTable.tableExists(tableName) && !sqlTable.columnExists(tableName, colAnnotation.name())) {
+            field.setAccessible(true);
+            System.out.println("PASSED IF");
+            System.out.println("ALTER 1: " + builder);
+            builder.delete(0, builder.length());
+
+            builder.append("ALTER TABLE ")
+                    .append(tableName)
+                    .append(" ADD ")
+                    .append(colAnnotation.name())
+                    .append(" ")
+                    .append(field.get(object))
+                    .append("(")
+                    .append(colAnnotation.maxDisplayed())
+                    .append(") ")
+                    .append(colAnnotation.notNull() ? "NOT NULL " : "")
+                    .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
+                    .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
+                    .append(colAnnotation.foreignKey())
+                    .append(",");
+            System.out.println("ALTER 2: " + builder + ", NAME: " + colAnnotation.name());
+            field.setAccessible(false);
+        }
+    }
+
+    private void createTableQueryBuilder(TableColumn colAnnotation, Object object, StringBuilder builder,
+                                         Field field) throws IllegalAccessException {
+        builder.append(colAnnotation.name())
                 .append(" ")
-                .append(f.get(object))
+                .append(field.get(object))
                 .append("(")
-                .append(col.maxDisplayed())
+                .append(colAnnotation.maxDisplayed())
                 .append(") ")
-                .append(col.notNull() ? "NOT NULL " : "")
-                .append(col.autoIncrement() ? "AUTO_INCREMENT " : "")
-                .append(col.primaryKey() ? "PRIMARY KEY" : "")
+                .append(colAnnotation.notNull() ? "NOT NULL " : "")
+                .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
+                .append(colAnnotation.primaryKey() ? "PRIMARY KEY" : "")
                 .append(" ")
-                .append(col.foreignKey())
+                .append(colAnnotation.foreignKey())
                 .append(",");
-        f.setAccessible(false);
     }
 
     private void createTableFromDbAnnotation(Object object) {
         try {
+            MySqlDatabase utilityClass = this.getDatabaseClass();
             Class<?> c = object.getClass();
             Database db = c.getAnnotation(Database.class);
             if (db.create_database()) {
-                this.createDatabase(db.name());
+                utilityClass.createDatabase(db.name());
             }
-            if (!databaseExists(db.name())) {
+            if (!this.getDatabaseClass().databaseExists(db.name())) {
                 throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
             }
-            if (db.switchToThisDatabase()) {
-                this.switchDatabase(db.name());
+            if (db.switchToDb()) {
+                utilityClass.switchDatabase(db.name());
             }
             // Loops through all fields that are annotated with @Table
             for (Field field1 : c.getDeclaredFields()) {
                 field1.setAccessible(true);
                 if (!field1.isAnnotationPresent(Table.class)) continue;
                 Table tbl = field1.getAnnotation(Table.class);
-
                 StringBuilder b = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tbl.table_name() + "(");
                 for (Field field2 : field1.get(object).getClass().getDeclaredFields()) {
                     Object o2 = field1.get(object);
@@ -442,12 +312,22 @@ public class MySqlDb {
                         throw new InvalidParameterException("Table class doesn't have @TableColumn annotation. It " +
                                 "must have one.");
                     }
-                    createTableQueryBuilder(o2, b, field2);
+                    TableColumn col = field2.getAnnotation(TableColumn.class);
+                    if (!col.autoCreate()) {
+                        continue;
+                    }
+                    this.createTableQueryBuilder(col, o2, b, field2);
+                    this.createAlterTableQueryBuilder(col, o2, b, tbl.table_name(), field2);
+                    field2.setAccessible(false);
                 }
                 field1.setAccessible(false);
-                try (PreparedStatement stmt = this.connection.prepareStatement(b.replace(b.length() - 2, b.length(),
-                        ");"
-                ).toString())) {
+                String query = null;
+                if (b.substring(0, 6).equals("ALTER ")) {
+                    query = b.replace(b.length() - 2, b.length(), ";").toString();
+                } else {
+                    query = b.replace(b.length() - 2, b.length(), ");").toString();
+                }
+                try (PreparedStatement stmt = this.connection.prepareStatement(query)) {
                     stmt.executeUpdate();
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -456,44 +336,6 @@ public class MySqlDb {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private boolean databaseExists(String name) {
-        return this.getDatabases().contains(name);
-    }
-
-    /**
-     * Changes a specific user's password. You don't need to specify a host because it defaults to % which kinda
-     * means it is universal
-     *
-     * @param username    The username of the user who you want to change the password.
-     * @param newPassword the new password.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb changeUserPassword(String username, String newPassword) {
-        return this.changeUserPassword("%", username, newPassword);
-    }
-
-    /**
-     * Changes a specific user's password.
-     *
-     * @param host        The hostname that appears after the @ in a query. Such as root@galactic-star.dev
-     * @param username    The username of the user who you want to change the password.
-     * @param newPassword the new password.
-     * @return Current instance of MySqlDb.
-     * @see MySqlDb
-     */
-    public MySqlDb changeUserPassword(String host, String username, String newPassword) {
-        String user = "'" + username + "'@'" + host + "'";
-
-        try (PreparedStatement stmt =
-                     this.connection.prepareStatement("ALTER USER " + user + " IDENTIFIED BY '" + newPassword + "';")) {
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return this;
     }
 
     /**
@@ -553,8 +395,9 @@ public class MySqlDb {
 
     /**
      * Closes the connection to the database.
-     * @throws InvalidConnectionException When the connection object is null or already closed.
+     *
      * @return Current instance of MySqlDb.
+     * @throws InvalidConnectionException When the connection object is null or already closed.
      * @see MySqlDb
      */
     public MySqlDb close() throws InvalidConnectionException {
@@ -586,7 +429,7 @@ public class MySqlDb {
      */
     public void setHost(String host) {
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
                 throw new InvalidConnectionException("Can't change the database host when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }
@@ -612,7 +455,7 @@ public class MySqlDb {
      */
     public void setPort(int port) {
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
                 throw new InvalidConnectionException("Can't change the port when connection is null or disconnected. "
                         + "Please disconnect and try again.");
             }
@@ -638,7 +481,7 @@ public class MySqlDb {
      */
     public void setDatabaseName(String databaseName) {
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
                 throw new InvalidConnectionException("Can't change the database name when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }
@@ -664,7 +507,7 @@ public class MySqlDb {
      */
     public void setUsername(String username) {
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
                 throw new InvalidConnectionException("Can't change the username when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }
@@ -690,7 +533,7 @@ public class MySqlDb {
      */
     public void setPassword(String password) {
         try {
-            if (MySqlDb.isInvalid(this.connection)) {
+            if (MySqlDb.isInvalid(this.connection) || this.isConnected()) {
                 throw new InvalidConnectionException("Can't change the password when connection is null or " +
                         "disconnected. Please disconnect and try again.");
             }

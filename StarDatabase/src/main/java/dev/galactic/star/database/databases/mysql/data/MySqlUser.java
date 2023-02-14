@@ -150,7 +150,7 @@ public class MySqlUser {
      * @return MySqlDb instance.
      * @see MySqlDb
      */
-    public MySqlDb instance() {
+    public MySqlDb returnToInstance() {
         return this.dbInstance;
     }
 
@@ -159,7 +159,7 @@ public class MySqlUser {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> retrieveUsers() {
+    public List<String> getUsers() {
         List<String> databaseNames = new ArrayList<>();
         if (MySqlDb.isInvalid(this.connection)) {
             try {
