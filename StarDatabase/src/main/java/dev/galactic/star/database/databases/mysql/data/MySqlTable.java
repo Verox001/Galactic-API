@@ -153,7 +153,7 @@ public class MySqlTable {
      * @return MySqlDb instance.
      * @see MySqlDb
      */
-    public MySqlDb returnToInstance() {
+    public MySqlDb instance() {
         return this.dbInstance;
     }
 }

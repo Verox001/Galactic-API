@@ -180,4 +180,14 @@ public class MySqlDatabase {
         }
         return this;
     }
+    
+    /**
+     * Returns an instance of MySqlDb.
+     *
+     * @return MySqlDb instance.
+     * @see MySqlDb
+     */
+    public MySqlDb instance() {
+        return this.dbInstance;
+    }
 }
