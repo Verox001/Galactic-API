@@ -366,6 +366,37 @@ public class MySqlDb {
     }
 
     /**
+     * Method for updating values of a MySQL table.
+     *
+     * @param table   Table name.
+     * @param columns List of the column names.
+     * @param values  List of the objects you want to update.
+     * @return Current class instance.
+     * @see MySqlDb
+     */
+    public MySqlDb update(String table, String[] columns, Object[] values, String comparableColumn, String comparableValue) {
+
+        StringBuilder setQuery = new StringBuilder();
+        for (int i = 0; i < columns.length; i++) {
+            if (i == columns.length - 1) {
+                setQuery.append(columns[i] + " = " + "'" + values[i].toString() + "'");
+                continue;
+            }
+            setQuery.append(columns[i] + " = " + "'" + values[i].toString() + "', ");
+        }
+        try (PreparedStatement stmt = this.connection.prepareStatement("UPDATE " + table + " SET " + setQuery +
+                " WHERE " + comparableColumn + " = " + comparableValue + ";")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
+            stmt.executeUpdate();
+        } catch (SQLException | InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
      * Getter for connection.
      *
      * @return Java Connection object.
