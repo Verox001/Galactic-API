@@ -76,4 +76,11 @@ public @interface TableColumn {
      * @return True or false.
      */
     boolean notNull() default false;
+
+    /**
+     * Provides a default string for the column.
+     *
+     * @return Default value as String
+     */
+    String defaultString() default "";
 }
