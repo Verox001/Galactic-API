@@ -19,6 +19,7 @@ package dev.galactic.star.database.databases.mysql;
 import dev.galactic.star.database.databases.mysql.data.MySqlDatabase;
 import dev.galactic.star.database.databases.mysql.data.TableNoAnnotationTest;
 import dev.galactic.star.database.databases.mysql.data.TableTest;
+import dev.galactic.star.database.databases.mysql.data.TableTest2;
 import dev.galactic.star.database.databases.mysql.data.database.DbParentTest;
 import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -48,15 +49,15 @@ class MySqlDbTest {
         try {
             db = new MySqlDb("cimeyclust.com", 6009, "mysql", "root", "very_safe_password1234")
                     .connect();
+            assertTrue(db.isConnected());
             connection = db.getConnection();
-            dbUtil = db.getDatabaseUtilClass();
+            dbUtil = db.getDatabaseMgr();
 
             dbUtil.deleteDatabases("test", "test_db", "test_db2", "test_db__3");
-            db.createTables(new DbParentTest(), new TableTest());
+            db.createTables(new DbParentTest(), new TableTest(), new TableTest2());
         } catch (InvalidConnectionException e) {
             throw new RuntimeException(e);
         }
-        assertTrue(db.isConnected());
     }
 
     @Test
@@ -145,7 +146,7 @@ class MySqlDbTest {
                 db.createTables(new TableNoAnnotationTest()));
 
         //Checks whether the table exists, and then creates it.
-        db.createTables(new DbParentTest(), new TableTest());
+        db.createTables(new DbParentTest(), new TableTest(), new TableTest2());
         dbUtil.createDatabases("test_db");
         assertTrue(dbUtil.databaseExists("test_db"));
 
@@ -153,13 +154,13 @@ class MySqlDbTest {
         assertTrue(() -> {
             int tableCount = 0;
             int columnCount = 0;
-            for (String tbl : db.getTableUtilClass()
-                    .getTables()
+            for (String tbl : db.getTableMgr()
+                    .retrieveTables()
                     .stream()
                     .filter(e -> Arrays.asList(tables).contains(e))
                     .collect(Collectors.toList())) {
-                columnCount += (long) db.getTableUtilClass()
-                        .getColumns(tbl)
+                columnCount += (long) db.getTableMgr()
+                        .retrieveColumns(tbl)
                         .size();
 
                 tableCount++;
@@ -168,7 +169,7 @@ class MySqlDbTest {
         });
 
         //Checks whether the table exists and then creates it from the table class
-        assertTrue(db.getTableUtilClass().tableExists("table_test"));
+        assertTrue(db.getTableMgr().tableExists("table_test"));
     }
 
     @Test
@@ -196,24 +197,24 @@ class MySqlDbTest {
     @Test
     @Order(15)
     void testGetDatabases() {
-        List<String> dbs = dbUtil.getDatabases();
+        List<String> dbs = dbUtil.retrieveDatabases();
         assertTrue(dbs.containsAll(Arrays.asList(databases)));
     }
 
     @Test
     @Order(16)
     void databaseExists() {
-        List<String> dbs = dbUtil.getDatabases();
+        List<String> dbs = dbUtil.retrieveDatabases();
         assertTrue(dbs.containsAll(Arrays.asList(databases)));
     }
 
     @Test
     @Order(17)
     void deleteDatabase() {
-        List<String> dbs = dbUtil.getDatabases();
+        List<String> dbs = dbUtil.retrieveDatabases();
         assertTrue(dbs.containsAll(Arrays.asList(databases)));
         dbUtil.deleteDatabases("test", "test_db", "test_db2", "test_db__3");
-        dbs = dbUtil.getDatabases();
+        dbs = dbUtil.retrieveDatabases();
         assertFalse(dbs.containsAll(Arrays.asList(databases)));
     }
 

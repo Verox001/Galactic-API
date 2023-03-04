@@ -159,7 +159,7 @@ public class MySqlUser {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> getUsers() {
+    public List<String> retrieveUsers() {
         List<String> databaseNames = new ArrayList<>();
         if (MySqlDb.isInvalid(this.connection)) {
             try {

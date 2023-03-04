@@ -124,7 +124,7 @@ public class MySqlDb {
      * @return MySqlDatabase instance.
      * @see MySqlDatabase
      */
-    public MySqlDatabase getDatabaseUtilClass() {
+    public MySqlDatabase getDatabaseMgr() {
         return new MySqlDatabase(this);
     }
 
@@ -174,7 +174,7 @@ public class MySqlDb {
      * @return MySqlTable instance.
      * @see MySqlTable
      */
-    public MySqlTable getTableUtilClass() {
+    public MySqlTable getTableMgr() {
         return new MySqlTable(this);
     }
 
@@ -201,6 +201,27 @@ public class MySqlDb {
         return this;
     }
 
+    private String createModifyColumnQuery(TableColumn colAnnotation, Object object,
+                                           String tableName, Field field) throws IllegalAccessException {
+        MySqlTable sqlTable = this.getTableMgr();
+        StringBuilder builder = new StringBuilder();
+        if (sqlTable.tableExists(tableName) && sqlTable.columnExists(tableName, colAnnotation.name())) {
+            builder.append(" MODIFY ")
+                    .append(colAnnotation.name())
+                    .append(" ")
+                    .append(field.get(object))
+                    .append("(")
+                    .append(colAnnotation.maxDisplayed())
+                    .append(") ")
+                    .append(colAnnotation.notNull() ? "NOT NULL " : "")
+                    .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
+                    .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
+                    .append(colAnnotation.foreignKey())
+                    .append(",");
+        }
+        return builder.toString();
+    }
+
     private void createTableFromTableAnnotation(Object object) {
         try {
             Class<?> c = object.getClass();
@@ -222,9 +243,11 @@ public class MySqlDb {
                     continue;
                 }
                 this.createTableQueryBuilder(col, object, b, f);
-                this.createAlterTableQueryBuilder(col, object, b, tbl.table_name(), f);
+                //If the table exists already and there are new columns, it adds the columns using the ALTER TABLE
+                // query.
+                this.createAlterTableQuery(col, object, b, tbl.table_name(), f);
             }
-            String query = null;
+            String query;
             if (b.substring(0, 6).equals("ALTER ")) {
                 query = b.replace(b.length() - 2, b.length(), ";").toString();
             } else {
@@ -241,27 +264,31 @@ public class MySqlDb {
         }
     }
 
-    private void createAlterTableQueryBuilder(TableColumn colAnnotation, Object object, StringBuilder builder,
-                                              String tableName, Field field) throws IllegalAccessException {
-        MySqlTable sqlTable = this.getTableUtilClass();
-        if (sqlTable.tableExists(tableName) && !sqlTable.columnExists(tableName, colAnnotation.name())) {
-            field.setAccessible(true);
+    private void createAlterTableQuery(TableColumn colAnnotation, Object object, StringBuilder builder,
+                                       String tableName, Field field) throws IllegalAccessException {
+        MySqlTable sqlTable = this.getTableMgr();
+        if (sqlTable.tableExists(tableName)) {
             builder.delete(0, builder.length());
 
             builder.append("ALTER TABLE ")
-                    .append(tableName)
-                    .append(" ADD ")
-                    .append(colAnnotation.name())
-                    .append(" ")
-                    .append(field.get(object))
-                    .append("(")
-                    .append(colAnnotation.maxDisplayed())
-                    .append(") ")
-                    .append(colAnnotation.notNull() ? "NOT NULL " : "")
-                    .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-                    .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
-                    .append(colAnnotation.foreignKey())
-                    .append(",");
+                    .append(tableName);
+            if (!sqlTable.columnExists(tableName, colAnnotation.name())) {
+                field.setAccessible(true);
+                builder.append(" ADD ")
+                        .append(colAnnotation.name())
+                        .append(" ")
+                        .append(field.get(object))
+                        .append("(")
+                        .append(colAnnotation.maxDisplayed())
+                        .append(") ")
+                        .append(colAnnotation.notNull() ? "NOT NULL " : "")
+                        .append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
+                        .append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
+                        .append(colAnnotation.foreignKey())
+                        .append(",");
+            } else {
+                builder.append(this.createModifyColumnQuery(colAnnotation, object, tableName, field));
+            }
             field.setAccessible(false);
         }
     }
@@ -284,13 +311,13 @@ public class MySqlDb {
 
     private void createTableFromDbAnnotation(Object object) {
         try {
-            MySqlDatabase utilityClass = this.getDatabaseUtilClass();
+            MySqlDatabase utilityClass = this.getDatabaseMgr();
             Class<?> c = object.getClass();
             Database db = c.getAnnotation(Database.class);
             if (db.create_database()) {
                 utilityClass.createDatabases(db.name());
             }
-            if (!this.getDatabaseUtilClass().databaseExists(db.name())) {
+            if (!this.getDatabaseMgr().databaseExists(db.name())) {
                 throw new IllegalArgumentException("That database doesn't exist. Please make sure it does.");
             }
             if (db.switchToDb()) {
@@ -314,7 +341,7 @@ public class MySqlDb {
                         continue;
                     }
                     this.createTableQueryBuilder(col, o2, b, field2);
-                    this.createAlterTableQueryBuilder(col, o2, b, tbl.table_name(), field2);
+                    this.createAlterTableQuery(col, o2, b, tbl.table_name(), field2);
                     field2.setAccessible(false);
                 }
                 field1.setAccessible(false);
@@ -368,13 +395,16 @@ public class MySqlDb {
     /**
      * Method for updating values of a MySQL table.
      *
-     * @param table   Table name.
-     * @param columns List of the column names.
-     * @param values  List of the objects you want to update.
+     * @param table            Table name.
+     * @param columns          List of the column names.
+     * @param values           List of the objects you want to update.
+     * @param comparableColumn The column name to compare.
+     * @param comparableValue  The value in the column to compare.
      * @return Current class instance.
      * @see MySqlDb
      */
-    public MySqlDb update(String table, String[] columns, Object[] values, String comparableColumn, String comparableValue) {
+    public MySqlDb update(String table, String[] columns, Object[] values, String comparableColumn,
+                          String comparableValue) {
 
         StringBuilder setQuery = new StringBuilder();
         for (int i = 0; i < columns.length; i++) {

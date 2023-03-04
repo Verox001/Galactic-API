@@ -21,6 +21,7 @@ import dev.galactic.star.database.impl.exceptions.InvalidConnectionException;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public class MySqlTable {
      * @return True or false.
      */
     public boolean columnExists(String tableName, String columnName) {
-        return this.getColumns(tableName).contains(columnName);
+        return this.retrieveColumns(tableName).contains(columnName);
     }
 
     /**
@@ -56,7 +57,7 @@ public class MySqlTable {
      * @param columnName Name of the column to drop.
      * @return MySqlTable instance.
      */
-    public MySqlTable dropColumn(String tableName, String columnName) {
+    public MySqlTable deleteColumn(String tableName, String columnName) {
         try (PreparedStatement stmt = this.dbInstance.getConnection().prepareStatement("ALTER TABLE " + tableName +
                 " DROP COLUMN " + columnName + ";")) {
             stmt.executeUpdate();
@@ -66,8 +67,38 @@ public class MySqlTable {
         return this;
     }
 
+    /**
+     * 'Renames the table with the given name to a new name.
+     *
+     * @param oldTableName Name of the table to rename.
+     * @param newTableName Name to rename the table to.
+     * @return MySqlTable current instance.
+     */
+    public MySqlTable renameTable(String oldTableName, String newTableName) {
+        try (PreparedStatement stmt =
+                     this.dbInstance.getConnection().prepareStatement("RENAME TABLE " + oldTableName + " TO " + newTableName + ";")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
 
-    public MySqlTable renameColumn(String oldColumnName, String newColumnName) {
+    /**
+     * Renames a column in the given table to a new name.
+     *
+     * @param tableName     Name of the table that contains the column you want to rename.
+     * @param oldColumnName Name of the column you want to rename.
+     * @param newColumnName The name you want to rename the column to.
+     * @return MySqlTable current instance.
+     */
+    public MySqlTable renameColumn(String tableName, String oldColumnName, String newColumnName) {
+        try (PreparedStatement stmt = this.dbInstance.getConnection().prepareStatement("ALTER TABLE " + tableName +
+                " RENAME COLUMN " + oldColumnName + " TO " + newColumnName + ";")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 
@@ -78,7 +109,63 @@ public class MySqlTable {
      * @return True or false.
      */
     public boolean tableExists(String tableName) {
-        return this.getTables().contains(tableName);
+        return this.retrieveTables().contains(tableName);
+    }
+
+    /**
+     * Deletes the table with the names specified.
+     *
+     * @param tableNames Tables to delete.
+     * @return MySqlTable current instance.
+     */
+    public MySqlTable deleteTables(String... tableNames) {
+        String tables = Arrays.toString(tableNames)
+                .replace("[", "")
+                .replace("]", "");
+        try (PreparedStatement stmt =
+                     this.dbInstance.getConnection().prepareStatement("DROP TABLE IF EXISTS" + tables + ";")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Unlocks all tables.
+     *
+     * @return MySqlTable current instance.
+     */
+    public MySqlTable unlockTables() {
+        try (PreparedStatement stmt = this.dbInstance.getConnection().prepareStatement("UNLOCK TABLES;")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Locks the table in a read or write state.
+     *
+     * @param tableName Name of the table to lock.
+     * @param readOnly  Whether to lock it as read only. True to lock it to the read only state, false for a write
+     *                  only state.
+     * @return MySqlTable current instance;
+     */
+    public MySqlTable lockTable(String tableName, boolean readOnly) {
+        String query;
+        if (readOnly) {
+            query = "LOCK TABLE " + tableName + " READ;";
+        } else {
+            query = "LOCK TABLE " + tableName + " WRITE;";
+        }
+        try (PreparedStatement stmt = this.dbInstance.getConnection().prepareStatement(query)) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
     }
 
     /**
@@ -86,7 +173,7 @@ public class MySqlTable {
      *
      * @return List&lt;String&gt; of the table names.
      */
-    public List<String> getTables() {
+    public List<String> retrieveTables() {
         List<String> tableNames = new ArrayList<>();
 
         Connection connection = dbInstance.getConnection();
@@ -118,7 +205,7 @@ public class MySqlTable {
      * @param tableName Name of the table you want to get the columns of.
      * @return List&lt;String&gt; of the column names.
      */
-    public List<String> getColumns(String tableName) {
+    public List<String> retrieveColumns(String tableName) {
         List<String> columns = new ArrayList<>();
 
         Connection connection = dbInstance.getConnection();
@@ -130,7 +217,7 @@ public class MySqlTable {
             }
         }
 
-        if (this.getTables().contains(tableName)) {
+        if (this.retrieveTables().contains(tableName)) {
             try (PreparedStatement stmt = connection.prepareStatement(" SELECT * FROM " + tableName + ";");
                  ResultSet resultSet = stmt.executeQuery()) {
                 ResultSetMetaData resultSetMeta = resultSet.getMetaData();
