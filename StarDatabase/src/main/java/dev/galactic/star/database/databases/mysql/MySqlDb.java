@@ -243,7 +243,7 @@ public class MySqlDb {
                     continue;
                 }
                 this.createTableQueryBuilder(col, object, b, f);
-                //If the table exists already and there are new columns, it adds the columns using the ALTER TABLE
+                // If the table exists already and there are new columns, it adds the columns using the ALTER TABLE
                 // query.
                 this.createAlterTableQuery(col, object, b, tbl.table_name(), f);
             }
@@ -415,6 +415,29 @@ public class MySqlDb {
             setQuery.append(columns[i] + " = " + "'" + values[i].toString() + "', ");
         }
         try (PreparedStatement stmt = this.connection.prepareStatement("UPDATE " + table + " SET " + setQuery +
+                " WHERE " + comparableColumn + " = " + comparableValue + ";")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
+            stmt.executeUpdate();
+        } catch (SQLException | InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Method for deleting a row from a table.
+     *
+     * @param table            Table name.
+     * @param comparableColumn Column name for the where clause.
+     * @param comparableValue  Column Value for the where clause.
+     * @return Current class instance.
+     * @see MySqlDb
+     */
+    public MySqlDb delete(String table, String comparableColumn, String comparableValue) {
+
+        try (PreparedStatement stmt = this.connection.prepareStatement("DELETE FROM " + table +
                 " WHERE " + comparableColumn + " = " + comparableValue + ";")) {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
