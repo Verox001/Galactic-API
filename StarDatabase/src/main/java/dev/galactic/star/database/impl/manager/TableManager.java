@@ -43,6 +43,9 @@ public class TableManager {
      * Will insert the given data for the table.
      *
      * @param table needs to annotate Table
+     * @throws AnnotationNotFoundException when there are no annotations found.
+     * @throws IllegalAccessException      If one of the fields are inaccessible.
+     * @throws PrimaryKeyNotFoundException if a primary key wasn't found.
      */
     public void update(Object table) throws AnnotationNotFoundException, IllegalAccessException, PrimaryKeyNotFoundException {
         Class<?> clazz = table.getClass();
