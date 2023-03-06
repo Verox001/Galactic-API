@@ -368,9 +368,11 @@ public class MySqlDb {
     /**
      * Method for updating values of a MySQL table.
      *
-     * @param table   Table name.
-     * @param columns List of the column names.
-     * @param values  List of the objects you want to update.
+     * @param table            Table name.
+     * @param columns          List of the column names.
+     * @param values           List of the objects you want to update.
+     * @param comparableColumn Column name for the where clause.
+     * @param comparableValue  Column Value for the where clause.
      * @return Current class instance.
      * @see MySqlDb
      */
@@ -385,6 +387,29 @@ public class MySqlDb {
             setQuery.append(columns[i] + " = " + "'" + values[i].toString() + "', ");
         }
         try (PreparedStatement stmt = this.connection.prepareStatement("UPDATE " + table + " SET " + setQuery +
+                " WHERE " + comparableColumn + " = " + comparableValue + ";")) {
+            if (MySqlDb.isInvalid(this.connection)) {
+                throw new InvalidConnectionException("Connection is invalid.");
+            }
+            stmt.executeUpdate();
+        } catch (SQLException | InvalidConnectionException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Method for deleting a row from a table.
+     *
+     * @param table            Table name.
+     * @param comparableColumn Column name for the where clause.
+     * @param comparableValue  Column Value for the where clause.
+     * @return Current class instance.
+     * @see MySqlDb
+     */
+    public MySqlDb delete(String table, String comparableColumn, String comparableValue) {
+
+        try (PreparedStatement stmt = this.connection.prepareStatement("DELETE FROM " + table +
                 " WHERE " + comparableColumn + " = " + comparableValue + ";")) {
             if (MySqlDb.isInvalid(this.connection)) {
                 throw new InvalidConnectionException("Connection is invalid.");
