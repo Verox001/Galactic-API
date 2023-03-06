@@ -114,8 +114,8 @@ public class MySqlDatabase {
      *
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> getDatabases() {
-        return this.getDatabases(null);
+    public List<String> retrieveDatabases() {
+        return this.retrieveDatabases(null);
     }
 
     /**
@@ -125,7 +125,7 @@ public class MySqlDatabase {
      *                find a source with all the patterns.
      * @return List&lt;String&gt; of the database names.
      */
-    public List<String> getDatabases(String pattern) {
+    public List<String> retrieveDatabases(String pattern) {
         List<String> databaseNames = new ArrayList<>();
         String patternQuery = pattern == null || pattern.isEmpty() ? ";" : " WHERE " + pattern + ";";
         if (MySqlDb.isInvalid(this.connection)) {
@@ -156,7 +156,7 @@ public class MySqlDatabase {
      * @return True or false.
      */
     public boolean databaseExists(String name) {
-        return this.getDatabases().contains(name);
+        return this.retrieveDatabases().contains(name);
     }
 
     /**
