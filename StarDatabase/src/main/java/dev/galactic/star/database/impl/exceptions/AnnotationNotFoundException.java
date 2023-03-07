@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
+package dev.galactic.star.database.impl.exceptions;
+
 /**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
+ * The exception that is thrown when there is not an annotation found when there should be one..
  */
-package dev.galactic.star.tools;
+public class AnnotationNotFoundException extends Exception {
+    public AnnotationNotFoundException(String message) {
+        super(message);
+    }
+
+    public AnnotationNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

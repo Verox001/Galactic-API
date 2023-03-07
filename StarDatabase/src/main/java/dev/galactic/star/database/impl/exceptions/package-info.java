@@ -15,6 +15,6 @@
  */
 
 /**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
+ * The list exceptions that are thrown in the program.
  */
-package dev.galactic.star.tools;
+package dev.galactic.star.database.impl.exceptions;

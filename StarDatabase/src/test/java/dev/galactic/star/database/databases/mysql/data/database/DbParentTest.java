@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
-/**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
- */
-package dev.galactic.star.tools;
+package dev.galactic.star.database.databases.mysql.data.database;
+
+import dev.galactic.star.database.impl.annotations.Database;
+import dev.galactic.star.database.impl.annotations.Table;
+
+@Database(name = "test_db")
+public class DbParentTest {
+    @Table(table_name = "test_tbl1")
+    TableTest1 tbl1 = new TableTest1();
+
+    @Table(table_name = "test_tbl2")
+    TableTest2 tbl2 = new TableTest2();
+
+    @Table(table_name = "test_tbl3")
+    TableTest3 tbl3 = new TableTest3();
+}

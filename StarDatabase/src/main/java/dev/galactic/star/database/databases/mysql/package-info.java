@@ -15,6 +15,6 @@
  */
 
 /**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
+ * The classes that are used to interact with the database API.
  */
-package dev.galactic.star.tools;
+package dev.galactic.star.database.databases.mysql;

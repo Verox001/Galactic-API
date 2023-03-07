@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-/**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
- */
-package dev.galactic.star.tools;
+package dev.galactic.star.database.databases.mysql.data;
+
+import dev.galactic.star.database.impl.annotations.TableColumn;
+
+public class TableNoAnnotationTest {
+
+    @TableColumn(name = "count", maxDisplayed = 100, primaryKey = true, autoIncrement = true, notNull = true)
+    String count = MySqlDataTypes.INT;
+
+    @TableColumn(name = "user_names", maxDisplayed = 100, notNull = true)
+    String usernames = MySqlDataTypes.VARCHAR;
+
+    @TableColumn(name = "passwords", maxDisplayed = 100, notNull = true)
+    String passwords = MySqlDataTypes.VARCHAR;
+}

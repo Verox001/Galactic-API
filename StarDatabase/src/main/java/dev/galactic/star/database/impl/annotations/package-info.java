@@ -15,6 +15,6 @@
  */
 
 /**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
+ * The package that declares all the annotations used to create a database, table, and columns
  */
-package dev.galactic.star.tools;
+package dev.galactic.star.database.impl.annotations;

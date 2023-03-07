@@ -15,6 +15,6 @@
  */
 
 /**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
+ * Extra data that is used when interacting with the database
  */
-package dev.galactic.star.tools;
+package dev.galactic.star.database.databases.mysql.data;

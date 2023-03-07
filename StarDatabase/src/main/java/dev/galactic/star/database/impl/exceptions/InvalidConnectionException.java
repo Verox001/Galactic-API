@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
+package dev.galactic.star.database.impl.exceptions;
+
 /**
- * The tools and utilities that can make your life easier even if it isn't Bukkit development.
+ * The exception that is thrown when the connection is null or invalid
  */
-package dev.galactic.star.tools;
+public class InvalidConnectionException extends Exception {
+
+    public InvalidConnectionException(String s) {
+        super(s);
+    }
+}
