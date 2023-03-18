@@ -37,12 +37,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Register {
+	/**
+	 * Custom tab completing options.
+	 */
 	public static final HashMap<String, List<String>> customOptions = new HashMap<>();
 	private static SimpleCommandMap commandMap;
 	private final PluginBase plugin;
 	private SimplePluginManager pluginManager;
 
 	public Register(PluginBase examplePlugin) {
+		customOptions.clear();
 		this.plugin = examplePlugin;
 		this.setCommandMap();
 	}
@@ -63,6 +67,16 @@ public class Register {
 	}
 
 	/**
+	 * Register some custom tab completions.
+	 *
+	 * @param id             ID of the tab completion.
+	 * @param tabCompletions List&lt;String&gt; of the options.
+	 */
+	public void registerCustomOptions(String id, List<String> tabCompletions) {
+		customOptions.put(id, tabCompletions);
+	}
+
+	/**
 	 * Checks whether the sender has the permission required.
 	 *
 	 * @param sender     CommandSender instance.
@@ -73,6 +87,11 @@ public class Register {
 		return sender.hasPermission(permission.value());
 	}
 
+	/**
+	 * Register Annotation commands.
+	 *
+	 * @param objects Array of the Command classes.
+	 */
 	public void register(Object... objects) {
 		setCommandMap();
 		for (Object o : objects) {

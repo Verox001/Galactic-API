@@ -188,10 +188,16 @@ public enum CompletionId {
 			} else if (val.equals(WORLD.id)) {
 				return Bukkit.getWorld(option) != null;
 			} else if (val.equals(ENTITY.id)) {
-				boolean anymatch = Arrays.stream(EntityType.values())
+				boolean anyMatch = Arrays.stream(EntityType.values())
 						.anyMatch(e -> e.name().equals(option.toUpperCase()));
-				if (!anymatch) {
+				if (!anyMatch) {
 					sender.sendMessage(ChatColor.RED + "Invalid parameters. This entity type doesn't exist");
+					return false;
+				}
+			} else if (Register.customOptions.containsKey(val)) {
+				List<String> options = Register.customOptions.get(val);
+				if (!options.contains(option)) {
+					sender.sendMessage(ChatColor.RED + "Sorry, but that's an invalid parameter.");
 					return false;
 				}
 			}
