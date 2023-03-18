@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.exceptions;
 
 /**
- * The exception that is thrown when the connection is null or invalid.
+ * The exception that is thrown when a duplicate of the @OptionalArgs annotation is found.
  */
-public class InvalidConnectionException extends Exception {
+public class DuplicateOptionalArgsAnnotationException extends Exception {
+	public DuplicateOptionalArgsAnnotationException() {
+	}
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+	public DuplicateOptionalArgsAnnotationException(String message) {
+		super(message);
+	}
+
+	public DuplicateOptionalArgsAnnotationException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

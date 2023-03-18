@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.annotations;
 
-/**
- * The exception that is thrown when the connection is null or invalid.
- */
-public class InvalidConnectionException extends Exception {
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface TabCompletion {
+
+	/**
+	 * An array of all the types of tab complete passed in.
+	 *
+	 * @return Array of tab complete types.
+	 */
+	String[] value();
 }

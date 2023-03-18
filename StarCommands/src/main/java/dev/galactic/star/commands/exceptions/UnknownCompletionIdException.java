@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.exceptions;
 
 /**
- * The exception that is thrown when the connection is null or invalid.
+ * The exception that is thrown when there is an unknown TabCompletion ID found..
  */
-public class InvalidConnectionException extends Exception {
+public class UnknownCompletionIdException extends Exception {
+	public UnknownCompletionIdException() {
+	}
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+	public UnknownCompletionIdException(String message) {
+		super(message);
+	}
+
+	public UnknownCompletionIdException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

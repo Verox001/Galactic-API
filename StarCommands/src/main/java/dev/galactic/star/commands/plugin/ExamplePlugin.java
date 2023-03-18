@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.plugin;
 
-/**
- * The exception that is thrown when the connection is null or invalid.
- */
-public class InvalidConnectionException extends Exception {
+import dev.galactic.star.commands.Register;
+import dev.galactic.star.commands.example.BanCommand;
+import org.bukkit.plugin.java.JavaPlugin;
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+public class ExamplePlugin extends JavaPlugin {
+
+	@Override
+	public void onEnable() {
+		Register register = new Register(this);
+		register.register(new BanCommand());
+	}
 }

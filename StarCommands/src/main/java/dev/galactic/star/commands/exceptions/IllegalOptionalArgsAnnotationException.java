@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.exceptions;
 
 /**
- * The exception that is thrown when the connection is null or invalid.
+ * The exception that is thrown when the @OptionalArgs annotation is not the last one.
  */
-public class InvalidConnectionException extends Exception {
+public class IllegalOptionalArgsAnnotationException extends Exception {
+	public IllegalOptionalArgsAnnotationException() {
+	}
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+	public IllegalOptionalArgsAnnotationException(String message) {
+		super(message);
+	}
+
+	public IllegalOptionalArgsAnnotationException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }
