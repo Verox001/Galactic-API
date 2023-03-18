@@ -21,6 +21,7 @@ import dev.galactic.star.commands.annotations.TabCompletion;
 import dev.galactic.star.commands.exceptions.UnknownCompletionIdException;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
@@ -34,30 +35,42 @@ public enum CompletionId {
 	 * The Player id.
 	 */
 	PLAYER("\\.player"),
+
 	/**
 	 * The Range id.
 	 */
 	RANGE("\\.range\\(\\d+-\\d+\\)"),
+
 	/**
 	 * The Material id.
 	 */
 	MATERIAL("\\.material"),
+
 	/**
 	 * The Boolean id.
 	 */
 	BOOLEAN("\\.boolean"),
+
 	/**
 	 * The Sound id.
 	 */
 	SOUND(".sound"),
+
 	/**
 	 * The World id.
 	 */
 	WORLD("\\.world"),
+
 	/**
 	 * The Entity id.
 	 */
 	ENTITY("\\.entity"),
+
+	/**
+	 * Gets the list from the config.yml ONLY FOR NOW.
+	 */
+	CONFIG("\\.config\\([\\w\\.]+\\)"),
+
 	/**
 	 * The Empty id.
 	 */
@@ -126,7 +139,17 @@ public enum CompletionId {
 					.collect(Collectors.toList());
 		} else if (val.matches(EMPTY.id)) {
 			return new ArrayList<>();
-		} else if (Register.customOptions.containsKey(val)) {
+		} else if (val.matches(CONFIG.id)) {
+			String configPath = val.replaceAll("(\\.config|[\\(\\)])", "");
+			System.out.println(configPath);
+			FileConfiguration config = Register.config;
+			if (config == null) {
+				System.out.println("NO CONFIG");
+				return new ArrayList<>();
+			}
+			return config.getStringList(configPath);
+		}
+		if (Register.customOptions.containsKey(val)) {
 			return Register.customOptions.get(val);
 		}
 		try {

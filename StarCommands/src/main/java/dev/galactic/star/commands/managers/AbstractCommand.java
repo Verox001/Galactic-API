@@ -63,7 +63,7 @@ public class AbstractCommand extends org.bukkit.command.Command implements Plugi
 
 	@Override
 	public boolean execute(CommandSender sender, String alias, String[] args) {
-		if (Register.sendNoPermMessage(sender, this.permission)) return false;
+		if (this.permission != null && Register.sendNoPermMessage(sender, this.permission)) return false;
 
 		try {
 			if (this.cmd.playerOnly() && sender instanceof ConsoleCommandSender) {
@@ -189,7 +189,7 @@ public class AbstractCommand extends org.bukkit.command.Command implements Plugi
 
 	@Override
 	public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-		if (!Register.hasPermission(sender, this.permission)) return new ArrayList<>();
+		if (this.permission != null && !Register.hasPermission(sender, this.permission)) return new ArrayList<>();
 		if (this.register.getSubCommands(this.clazz).size() > 0 && !args[0].matches("\\s")) {
 			if (args.length == 1) {
 				return this.register.getSubCommands(this.clazz).stream().map(SubCommand::value).filter(value -> this.canTabCompleteValues(sender, new String[]{value}, true)).collect(Collectors.toList());

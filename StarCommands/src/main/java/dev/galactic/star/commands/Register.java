@@ -24,6 +24,7 @@ import dev.galactic.star.commands.managers.AbstractCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginBase;
 import org.bukkit.plugin.SimplePluginManager;
 
@@ -45,10 +46,22 @@ public class Register {
 	private final PluginBase plugin;
 	private SimplePluginManager pluginManager;
 
+	/**
+	 * The config where the list of options can be.
+	 */
+	public static FileConfiguration config;
+
 	public Register(PluginBase examplePlugin) {
 		customOptions.clear();
 		this.plugin = examplePlugin;
 		this.setCommandMap();
+	}
+
+	/**
+	 * Resets the config.
+	 */
+	public void reloadConfig() {
+		config = this.plugin.getConfig();
 	}
 
 	/**
@@ -93,6 +106,7 @@ public class Register {
 	 * @param objects Array of the Command classes.
 	 */
 	public void register(Object... objects) {
+		config = this.plugin.getConfig();
 		setCommandMap();
 		for (Object o : objects) {
 			Class<?> c = o.getClass();
