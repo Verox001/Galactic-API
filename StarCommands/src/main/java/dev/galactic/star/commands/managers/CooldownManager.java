@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.commands;
+package dev.galactic.star.commands.managers;
 
 import dev.galactic.star.commands.annotations.Cooldown;
 import org.bukkit.ChatColor;

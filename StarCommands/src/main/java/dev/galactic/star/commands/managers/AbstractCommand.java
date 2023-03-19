@@ -16,7 +16,6 @@
 
 package dev.galactic.star.commands.managers;
 
-import dev.galactic.star.commands.CooldownManager;
 import dev.galactic.star.commands.Register;
 import dev.galactic.star.commands.annotations.Command;
 import dev.galactic.star.commands.annotations.Permission;

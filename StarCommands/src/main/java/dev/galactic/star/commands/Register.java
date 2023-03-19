@@ -21,6 +21,7 @@ import dev.galactic.star.commands.annotations.*;
 import dev.galactic.star.commands.exceptions.AnnotationNotFoundException;
 import dev.galactic.star.commands.exceptions.DuplicateOptionalArgsAnnotationException;
 import dev.galactic.star.commands.managers.AbstractCommand;
+import dev.galactic.star.commands.managers.CooldownManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
