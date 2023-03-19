@@ -20,18 +20,40 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.concurrent.TimeUnit;
 
 /**
- * The annotation that handles the command without subcommands.
+ * The annotation that declares a cool down between entering commands.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Default {
+@Target(ElementType.TYPE)
+public @interface Cooldown {
+	/**
+	 * The amount of time of the unit specified.
+	 *
+	 * @return Long time in the units.
+	 */
+	long time();
 
 	/**
-	 * Usage of the @Default annotation.
+	 * The timeunit in which you have to wait before you can execute the command.
 	 *
-	 * @return Usage.
+	 * @return TimeUnit.
+	 * @see TimeUnit
 	 */
-	String usage();
+	TimeUnit unit();
+
+	/**
+	 * Whether the console should have the cooldown too.
+	 *
+	 * @return True or false.
+	 */
+	boolean consoleToo() default false;
+
+	/**
+	 * The permission that bypasses the command.
+	 *
+	 * @return Permission.
+	 */
+	String bypassPerm() default "";
 }

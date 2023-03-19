@@ -42,26 +42,19 @@ public class Register {
 	 * Custom tab completing options.
 	 */
 	public static final HashMap<String, List<String>> customOptions = new HashMap<>();
-	private static SimpleCommandMap commandMap;
-	private final PluginBase plugin;
-	private SimplePluginManager pluginManager;
-
 	/**
 	 * The config where the list of options can be.
 	 */
 	public static FileConfiguration config;
+	private static SimpleCommandMap commandMap;
+	private final PluginBase plugin;
+	private final CooldownManager manager = new CooldownManager();
+	private SimplePluginManager pluginManager;
 
 	public Register(PluginBase examplePlugin) {
 		customOptions.clear();
 		this.plugin = examplePlugin;
 		this.setCommandMap();
-	}
-
-	/**
-	 * Resets the config.
-	 */
-	public void reloadConfig() {
-		config = this.plugin.getConfig();
 	}
 
 	/**
@@ -80,16 +73,6 @@ public class Register {
 	}
 
 	/**
-	 * Register some custom tab completions.
-	 *
-	 * @param id             ID of the tab completion.
-	 * @param tabCompletions List&lt;String&gt; of the options.
-	 */
-	public void registerCustomOptions(String id, List<String> tabCompletions) {
-		customOptions.put(id, tabCompletions);
-	}
-
-	/**
 	 * Checks whether the sender has the permission required.
 	 *
 	 * @param sender     CommandSender instance.
@@ -101,18 +84,55 @@ public class Register {
 	}
 
 	/**
+	 * Resets the config.
+	 */
+	public void reloadConfig() {
+		config = this.plugin.getConfig();
+	}
+
+	/**
+	 * Register some custom tab completions.
+	 *
+	 * @param id             ID of the tab completion.
+	 * @param tabCompletions List&lt;String&gt; of the options.
+	 */
+	public void registerCustomOptions(String id, List<String> tabCompletions) {
+		customOptions.put(id, tabCompletions);
+	}
+
+	/**
 	 * Register Annotation commands.
 	 *
-	 * @param objects Array of the Command classes.
+	 * @param unregister Whether to unregister the non-custom commands with the same name as the custom ones.
+	 * @param objects    Array of the Command classes.
 	 */
-	public void register(Object... objects) {
+	public void register(boolean unregister, Object... objects) {
 		config = this.plugin.getConfig();
 		setCommandMap();
 		for (Object o : objects) {
 			Class<?> c = o.getClass();
 			Command cmd = this.getCommand(c);
-			commandMap.register(cmd.value(), new AbstractCommand(this, cmd, this.getClassPermission(c), o));
+			if (unregister) {
+				org.bukkit.command.Command command = commandMap.getCommand(cmd.value());
+				if (command != null) {
+					command.unregister(commandMap);
+				}
+			}
+			org.bukkit.command.Command abstractCommand = new AbstractCommand(this.manager, this, cmd,
+					this.getClassPermission(c), o
+			);
+			commandMap.register(cmd.value(), abstractCommand);
 		}
+	}
+
+	/**
+	 * Getter for the cooldown manager.
+	 *
+	 * @return CooldownMangaer instance.
+	 * @see CooldownManager
+	 */
+	public CooldownManager getCooldowmManager() {
+		return this.manager;
 	}
 
 	private void setCommandMap() {
@@ -181,9 +201,11 @@ public class Register {
 	 */
 	public int getParameterSize(Method method, boolean includeOptional) {
 		Parameter[] params = method.getParameters();
-		if (includeOptional && Arrays.stream(params).anyMatch(e -> e.isAnnotationPresent(OptionalArgs.class)))
-			return params.length - 1;
-		return params.length - 2;
+		if (this.hasOptionalArgs(method)) {
+			if (includeOptional) return params.length-1;
+			return params.length-2;
+		}
+		return params.length - 1;
 	}
 
 	/**
@@ -204,7 +226,6 @@ public class Register {
 		}
 		return params[params.length - 1].isAnnotationPresent(OptionalArgs.class);
 	}
-
 
 	/**
 	 * Returns @TabCompletion annotation.
@@ -239,8 +260,30 @@ public class Register {
 	 * @return @Permission annotation.
 	 */
 	public Permission getSubCommandPermByName(Class<?> c, String subCommand) {
-		return this.getMethodBySubName(c, subCommand)
-				.getDeclaredAnnotation(Permission.class);
+		Method method = this.getMethodBySubName(c, subCommand);
+		return method == null ? null : method.getDeclaredAnnotation(Permission.class);
+	}
+
+	/**
+	 * Returns the permission of the @Default method.
+	 *
+	 * @param c Class to check.
+	 * @return @Permission annotation.
+	 */
+	public Permission getDefaultHanlderPermission(Class<?> c) {
+		Method method = this.getDefaultHandler(c);
+		return method == null ? null : method.getDeclaredAnnotation(Permission.class);
+	}
+
+	/**
+	 * Returns the @Default annotation.
+	 *
+	 * @param c Class to check.
+	 * @return @Default annotation.
+	 */
+	public Default getDefaultAnnotation(Class<?> c) {
+		return this.getDefaultHandler(c)
+				.getDeclaredAnnotation(Default.class);
 	}
 
 	/**
@@ -269,7 +312,7 @@ public class Register {
 		return Arrays.stream(c.getDeclaredMethods())
 				.filter(e -> e.isAnnotationPresent(Default.class))
 				.findFirst()
-				.get();
+				.orElse(null);
 	}
 
 	/**

@@ -159,6 +159,14 @@ public enum CompletionId {
 		}
 	}
 
+	/**
+	 * Gets the Object of the specified option.
+	 *
+	 * @param completion @TabCompletion annotation.
+	 * @param index      Index of the type of tab complete.
+	 * @param option     Option the user chose.
+	 * @return Object of option type.
+	 */
 	public static Object getObjArgsFrom(TabCompletion completion, int index, String option) {
 		String[] values = completion.value();
 		if (values.length == 0) {
@@ -186,6 +194,15 @@ public enum CompletionId {
 		return option;
 	}
 
+	/**
+	 * Checks whether the options are a valid tab complete option.
+	 *
+	 * @param sender     CommandSender.
+	 * @param completion @TabCompletion annotation.
+	 * @param index      Index of the type of tab complete.
+	 * @param option     Option the sender chose.
+	 * @return True if valid, false if not.
+	 */
 	public static boolean isValid(CommandSender sender, TabCompletion completion, int index, String option) {
 		String[] values = completion.value();
 		String val = values[index];
