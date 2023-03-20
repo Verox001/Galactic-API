@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The exception that is thrown when the connection is null or invalid.
+ * The annotation that handles the command without subcommands.
  */
-public class InvalidConnectionException extends Exception {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Default {
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+	/**
+	 * Usage of the @Default annotation.
+	 *
+	 * @return Usage.
+	 */
+	String usage();
 }

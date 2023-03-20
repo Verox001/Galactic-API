@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.exceptions;
 
 /**
- * The exception that is thrown when the connection is null or invalid.
+ * The exception that is thrown when a duplicate of the @Main annotation is found.
  */
-public class InvalidConnectionException extends Exception {
+public class DuplicateDefaultAnnotationException extends Exception {
+	public DuplicateDefaultAnnotationException() {
+	}
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+	public DuplicateDefaultAnnotationException(String message) {
+		super(message);
+	}
+
+	public DuplicateDefaultAnnotationException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

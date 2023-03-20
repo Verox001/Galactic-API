@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package dev.galactic.star.database.impl.exceptions;
+package dev.galactic.star.commands.exceptions;
+
 
 /**
- * The exception that is thrown when the connection is null or invalid.
+ * The exception that is thrown when there is not an annotation found when there should be one.
  */
-public class InvalidConnectionException extends Exception {
+public class AnnotationNotFoundException extends Exception {
+	public AnnotationNotFoundException() {
+	}
 
-    public InvalidConnectionException(String s) {
-        super(s);
-    }
+	public AnnotationNotFoundException(String message) {
+		super(message);
+	}
+
+	public AnnotationNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

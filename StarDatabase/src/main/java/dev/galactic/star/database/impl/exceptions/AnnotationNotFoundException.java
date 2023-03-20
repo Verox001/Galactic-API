@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Galactic Star Studios
+ * Copyright 2023 Galactic Star Studios
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package dev.galactic.star.database.impl.exceptions;
 
 /**
- * The exception that is thrown when there is not an annotation found when there should be one..
+ * The exception that is thrown when there is not an annotation found when there should be one.
  */
 public class AnnotationNotFoundException extends Exception {
     public AnnotationNotFoundException(String message) {
