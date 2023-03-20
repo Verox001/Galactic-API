@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Galactic Star Studios
+ * Copyright 2023 Galactic Star Studios
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ package dev.galactic.star.tools;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
 
-import java.io.Serializable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * The Class used to serialize Bukkit Inventories and convert it to a byte array or to Base64.
@@ -47,7 +49,19 @@ public class InventorySerializer {
      * @return Byte array.
      */
     public static byte[] serialize(Inventory inventory) {
-        return ObjectSerializer.objectToByteArray(new StarInventory(inventory));
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+             BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream)) {
+
+            dataOutput.writeUTF(getTypeString(inventory));
+
+            for (ItemStack item : inventory.getContents()) {
+                dataOutput.writeObject(item);
+            }
+
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -78,60 +92,66 @@ public class InventorySerializer {
      * @return Bukkit inventory object.
      */
     public static Inventory deserialize(byte[] data) {
-        return getInventory((StarInventory) ObjectSerializer.byteArrayToObject(data));
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            Inventory inventory = Bukkit.getServer().createInventory(null, getType(dataInput.readUTF()));
+
+            // Read the serialized inventory
+            for (int i = 0; i < inventory.getSize(); i++) {
+                inventory.setItem(i, (ItemStack) dataInput.readObject());
+            }
+
+            dataInput.close();
+            return inventory;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    /**
-     * Returns a Bukkit inventory from the StarInventory object.
-     *
-     * @param starInventory Serializable Bukkit Inventory.
-     * @return Bukkit Inventory.
-     */
-    private static Inventory getInventory(StarInventory starInventory) {
-        Inventory inventory;
-        if (starInventory.size == 0) {
-            inventory = Bukkit.createInventory(
-                    starInventory.inventoryHolder,
-                    starInventory.inventoryType,
-                    starInventory.title
-            );
-        } else {
-            inventory = Bukkit.createInventory(
-                    starInventory.inventoryHolder,
-                    starInventory.size,
-                    starInventory.title
-            );
+    private static InventoryType getType(String type) {
+        switch (type.toLowerCase()) {
+            case "furnace": {
+                return InventoryType.FURNACE;
+            }
+            case "player": {
+                return InventoryType.PLAYER;
+            }
+            case "crafting": {
+                return InventoryType.CRAFTING;
+            }
+            case "enchanting": {
+                return InventoryType.ENCHANTING;
+            }
+            case "brewing": {
+                return InventoryType.BREWING;
+            }
+            case "merchant": {
+                return InventoryType.MERCHANT;
+            }
+            case "chest": {
+                return InventoryType.CHEST;
+            }
+            case "anvil": {
+                return InventoryType.ANVIL;
+            }
+            case "beacon": {
+                return InventoryType.BEACON;
+            }
         }
-        inventory.setContents(starInventory.contents);
-        inventory.setMaxStackSize(starInventory.maxStackSize);
-        return inventory;
+        return null;
     }
 
-    /**
-     * The serializable Bukkit inventory implementation.
-     *
-     * @author PrismoidNW
-     */
-    private static class StarInventory implements Serializable {
-        private final ItemStack[] contents;
-        private final InventoryHolder inventoryHolder;
-        private final int maxStackSize;
-        private final int size;
-        private final String title;
-        private final InventoryType inventoryType;
-
-        /**
-         * The constructor used to set the inventory values so it can be serialized.
-         *
-         * @param inventory Bukkit Inventory.
-         */
-        public StarInventory(Inventory inventory) {
-            this.contents = inventory.getContents();
-            this.inventoryHolder = inventory.getHolder();
-            this.maxStackSize = inventory.getMaxStackSize();
-            this.size = inventory.getSize();
-            this.title = inventory.getTitle();
-            this.inventoryType = inventory.getType();
-        }
+    private static String getTypeString(Inventory inventory) {
+        if (inventory instanceof PlayerInventory) return "player";
+        else if (inventory instanceof FurnaceInventory) return "furnace";
+        else if (inventory instanceof CraftingInventory) return "crafting";
+        else if (inventory instanceof EnchantingInventory) return "enchanting";
+        else if (inventory instanceof BrewerInventory) return "brewing";
+        else if (inventory instanceof MerchantInventory) return "merchant";
+        else if (inventory instanceof DoubleChestInventory) return "chest";
+        else if (inventory instanceof AnvilInventory) return "anvil";
+        else if (inventory instanceof BeaconInventory) return "beacon";
+        return null;
     }
 }

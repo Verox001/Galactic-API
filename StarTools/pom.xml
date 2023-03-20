@@ -27,8 +27,7 @@
 
     <groupId>dev.galactic.star.tools</groupId>
     <artifactId>StarTools</artifactId>
-    <packaging>pom</packaging>
-    <version>${parent.version}</version>
+    <version>${parent.version</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
