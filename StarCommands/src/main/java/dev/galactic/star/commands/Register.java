@@ -2,11 +2,11 @@
 /*
  * Copyright 2023 Galactic Star Studios
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,9 @@ package dev.galactic.star.commands;
 
 import dev.galactic.star.commands.annotations.*;
 import dev.galactic.star.commands.exceptions.AnnotationNotFoundException;
+import dev.galactic.star.commands.exceptions.DuplicateDefaultAnnotationException;
 import dev.galactic.star.commands.exceptions.DuplicateOptionalArgsAnnotationException;
+import dev.galactic.star.commands.exceptions.IllegalOptionalArgsAnnotationException;
 import dev.galactic.star.commands.managers.AbstractCommand;
 import dev.galactic.star.commands.managers.CooldownManager;
 import org.bukkit.ChatColor;
@@ -113,6 +115,18 @@ public class Register {
 		for (Object o : objects) {
 			Class<?> c = o.getClass();
 			Command cmd = this.getCommand(c);
+			try {
+				if (c.getDeclaredAnnotationsByType(Default.class).length > 1) {
+					throw new DuplicateDefaultAnnotationException();
+				} else if (Arrays.stream(c.getMethods())
+						.anyMatch(e -> e.getDeclaredAnnotationsByType(OptionalArgs.class).length > 1)) {
+					throw new IllegalOptionalArgsAnnotationException(
+							"You can only have one @OptionalArgs annotation in a method at a time.");
+
+				}
+			} catch (IllegalOptionalArgsAnnotationException | DuplicateDefaultAnnotationException e) {
+				throw new RuntimeException(e);
+			}
 			if (unregister) {
 				org.bukkit.command.Command command = commandMap.getCommand(cmd.value());
 				if (command != null) {
@@ -203,8 +217,8 @@ public class Register {
 	public int getParameterSize(Method method, boolean includeOptional) {
 		Parameter[] params = method.getParameters();
 		if (this.hasOptionalArgs(method)) {
-			if (includeOptional) return params.length-1;
-			return params.length-2;
+			if (includeOptional) return params.length - 1;
+			return params.length - 2;
 		}
 		return params.length - 1;
 	}
