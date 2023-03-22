@@ -64,7 +64,7 @@ public class Register {
 	 * Sends the no permission message if they don't have the permission required.
 	 *
 	 * @param sender     CommandSender instance.
-	 * @param permission @Permission annotation.
+	 * @param permission Permission annotation.
 	 * @return True if they don't have the permission else false.
 	 */
 	public static boolean sendNoPermMessage(CommandSender sender, Permission permission) {
@@ -79,7 +79,7 @@ public class Register {
 	 * Checks whether the sender has the permission required.
 	 *
 	 * @param sender     CommandSender instance.
-	 * @param permission @Permission annotation.
+	 * @param permission Permission annotation.
 	 * @return True if they do, else false.
 	 */
 	public static boolean hasPermission(CommandSender sender, Permission permission) {
@@ -180,7 +180,7 @@ public class Register {
 	 * Returns the command base permission.
 	 *
 	 * @param c Class&lt;/?&gt;
-	 * @return @Permission annotation instance.
+	 * @return Permission annotation instance.
 	 * @see Permission
 	 */
 	public Permission getClassPermission(Class<?> c) {
@@ -191,7 +191,7 @@ public class Register {
 	 * Returns the @Command annotation.
 	 *
 	 * @param c Class&lt;/?&gt;
-	 * @return @Command annotation instance.
+	 * @return Command annotation instance.
 	 * @see Command
 	 */
 	public Command getCommand(Class<?> c) {
@@ -246,7 +246,7 @@ public class Register {
 	 * Returns @TabCompletion annotation.
 	 *
 	 * @param method Method to get from.
-	 * @return @TabCompletion annotation instance.
+	 * @return TabCompletion annotation instance.
 	 */
 	public TabCompletion getTabCompletion(Method method) {
 		return method.getDeclaredAnnotation(TabCompletion.class);
@@ -272,7 +272,7 @@ public class Register {
 	 *
 	 * @param c          Class&lt;?&gt;
 	 * @param subCommand SubCommand name.
-	 * @return @Permission annotation.
+	 * @return Permission annotation.
 	 */
 	public Permission getSubCommandPermByName(Class<?> c, String subCommand) {
 		Method method = this.getMethodBySubName(c, subCommand);
@@ -283,7 +283,7 @@ public class Register {
 	 * Returns the permission of the @Default method.
 	 *
 	 * @param c Class to check.
-	 * @return @Permission annotation.
+	 * @return Permission annotation.
 	 */
 	public Permission getDefaultHanlderPermission(Class<?> c) {
 		Method method = this.getDefaultHandler(c);
@@ -294,7 +294,7 @@ public class Register {
 	 * Returns the @Default annotation.
 	 *
 	 * @param c Class to check.
-	 * @return @Default annotation.
+	 * @return Default annotation.
 	 */
 	public Default getDefaultAnnotation(Class<?> c) {
 		return this.getDefaultHandler(c)
@@ -306,7 +306,7 @@ public class Register {
 	 *
 	 * @param c    Class&lt;?&gt;
 	 * @param name Name of the subcommand.
-	 * @return @SubCommand annotation.
+	 * @return SubCommand annotation.
 	 */
 	public SubCommand getSubCommandByName(Class<?> c, String name) {
 		Optional<SubCommand> optional = this.getSubCommands(c)
@@ -320,7 +320,7 @@ public class Register {
 	 * Returns the method that is annotated with @Default.
 	 *
 	 * @param c Class&lt;/?&gt;
-	 * @return @Default annotation instance.
+	 * @return Default annotation instance.
 	 * @see Default
 	 */
 	public Method getDefaultHandler(Class<?> c) {

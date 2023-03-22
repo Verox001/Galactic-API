@@ -31,7 +31,7 @@ public class CooldownManager {
 	 * Adds the CommandSender to the cooldown list.
 	 *
 	 * @param sender   CommandSender.
-	 * @param cooldown @Cooldown annotation.
+	 * @param cooldown Cooldown annotation.
 	 */
 	public void add(CommandSender sender, Cooldown cooldown) {
 		if (cooldown == null) {
@@ -101,10 +101,10 @@ public class CooldownManager {
 	}
 
 	/**
-	 * Gets the @Cooldown annotation if specified.
+	 * Gets the Cooldown annotation if specified.
 	 *
 	 * @param c Class to check for.
-	 * @return @Cooldown annotation.
+	 * @return Cooldown annotation.
 	 */
 	public Cooldown getCooldown(Class<?> c) {
 		return c.getDeclaredAnnotation(Cooldown.class);

@@ -85,7 +85,8 @@ public enum CompletionId {
 	/**
 	 * Returns a HashMap of the type and options.
 	 *
-	 * @param completion @TabCompletion annotation.
+	 * @param completion TabCompletion annotation.
+	 * @param index      The index of the TabCompletion values.
 	 * @return HashMap&lt;String, List&lt;String&gt;&gt;
 	 */
 	public static List<String> getArgsFromObj(TabCompletion completion, int index) {
@@ -162,7 +163,7 @@ public enum CompletionId {
 	/**
 	 * Gets the Object of the specified option.
 	 *
-	 * @param completion @TabCompletion annotation.
+	 * @param completion TabCompletion annotation.
 	 * @param index      Index of the type of tab complete.
 	 * @param option     Option the user chose.
 	 * @return Object of option type.
@@ -198,7 +199,7 @@ public enum CompletionId {
 	 * Checks whether the options are a valid tab complete option.
 	 *
 	 * @param sender     CommandSender.
-	 * @param completion @TabCompletion annotation.
+	 * @param completion TabCompletion annotation.
 	 * @param index      Index of the type of tab complete.
 	 * @param option     Option the sender chose.
 	 * @return True if valid, false if not.
