@@ -114,7 +114,7 @@ public class MySqlDb {
 	 * @return MySqlUser instance.
 	 * @see MySqlUser
 	 */
-	public MySqlUser getUserUtilClass() {
+	public MySqlUser getUserMgr() {
 		return new MySqlUser(this);
 	}
 
@@ -217,8 +217,7 @@ public class MySqlDb {
 					.append(") ")
 					.append(colAnnotation.notNull() ? "NOT NULL " : "")
 					.append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-					.append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
-					.append(colAnnotation.foreignKey())
+					.append(colAnnotation.primaryKey() ? "PRIMARY KEY " + colAnnotation.primaryKeyVal() : "")
 					.append(",");
 		}
 		return builder.toString();
@@ -285,8 +284,7 @@ public class MySqlDb {
 						.append(") ")
 						.append(colAnnotation.notNull() ? "NOT NULL " : "")
 						.append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-						.append(colAnnotation.primaryKey() ? "PRIMARY KEY " : " ")
-						.append(colAnnotation.foreignKey())
+						.append(colAnnotation.primaryKey() ? "PRIMARY KEY " + colAnnotation.primaryKeyVal() : "")
 						.append(",");
 			} else {
 				builder.append(this.createModifyColumnQuery(colAnnotation, object, tableName, field));
@@ -305,9 +303,7 @@ public class MySqlDb {
 				.append(") ")
 				.append(colAnnotation.notNull() ? "NOT NULL " : "")
 				.append(colAnnotation.autoIncrement() ? "AUTO_INCREMENT " : "")
-				.append(colAnnotation.primaryKey() ? "PRIMARY KEY" : "")
-				.append(" ")
-				.append(colAnnotation.foreignKey())
+				.append(colAnnotation.primaryKey() ? "PRIMARY KEY " : "")
 				.append(",");
 	}
 

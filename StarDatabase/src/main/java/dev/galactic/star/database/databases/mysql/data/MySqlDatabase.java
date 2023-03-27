@@ -99,12 +99,12 @@ public class MySqlDatabase {
      * @see Database
      * @see MySqlDb
      */
-    public MySqlDatabase createDatabases(Class<?>... classes) {
-        for (Class<?> clazz : classes) {
-            if (!clazz.isAnnotationPresent(Database.class)) {
+    public MySqlDatabase createDatabases(Object... classes) {
+        for (Object clazz : classes) {
+            if (!clazz.getClass().isAnnotationPresent(Database.class)) {
                 throw new InvalidParameterException("That object doesn't have a Database annotation.");
             }
-            this.createDatabases(clazz.getAnnotation(Database.class).name());
+            this.createDatabases(clazz.getClass().getAnnotation(Database.class).name());
         }
         return this;
     }

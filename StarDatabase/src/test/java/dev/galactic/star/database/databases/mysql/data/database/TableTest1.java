@@ -21,12 +21,18 @@ import dev.galactic.star.database.impl.annotations.TableColumn;
 
 public class TableTest1 {
 
-    @TableColumn(name = "count", maxDisplayed = 100, primaryKey = true, autoIncrement = true, notNull = true)
-    String count = MySqlDataTypes.INT;
+	@TableColumn(name = "count",
+			maxDisplayed = 100,
+			autoCreate = true,
+			primaryKey = true,
+			primaryKeyVal = "key_name",
+			autoIncrement = true,
+			notNull = true)
+	String count = MySqlDataTypes.INT;
 
-    @TableColumn(name = "user_names", maxDisplayed = 100, notNull = true)
-    String usernames = MySqlDataTypes.VARCHAR;
+	@TableColumn(name = "user_names", maxDisplayed = 100, notNull = true)
+	String usernames = MySqlDataTypes.VARCHAR;
 
-    @TableColumn(name = "passwords", maxDisplayed = 100, notNull = true)
-    String passwords = MySqlDataTypes.VARCHAR;
+	@TableColumn(name = "passwords", maxDisplayed = 100, notNull = true)
+	String passwords = MySqlDataTypes.VARCHAR;
 }
