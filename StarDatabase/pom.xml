@@ -18,11 +18,45 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>Galactic-API</artifactId>
-        <groupId>dev.galactic.star</groupId>
-        <version>1.0.6-BETA</version>
-    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.galactic.star</groupId>
+    <artifactId>StarDatabase</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.3-BETA</version>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.32</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
         <plugins>
@@ -33,26 +67,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>dev.galactic.star.db</groupId>
-    <artifactId>StarDatabase</artifactId>
-    <packaging>pom</packaging>
-    <version>${parent.version}</version>
-
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.31</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

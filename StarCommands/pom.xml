@@ -19,17 +19,15 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>dev.galactic.star</groupId>
-        <artifactId>Galactic-API</artifactId>
-        <version>1.0.6-BETA</version>
-    </parent>
 
+    <groupId>dev.galactic.star</groupId>
     <artifactId>StarCommands</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.1-BETA</version>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -37,6 +35,10 @@
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
         </repository>
     </repositories>
     <dependencies>
@@ -53,4 +55,15 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitea</id>
+            <url>https://repo.galactic-star.dev/api/packages/Galactic-Star-Studios/maven</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
