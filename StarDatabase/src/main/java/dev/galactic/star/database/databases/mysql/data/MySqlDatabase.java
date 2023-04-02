@@ -180,8 +180,8 @@ public class MySqlDatabase {
         }
         return this;
     }
-
-	/**
+    
+    /**
      * Returns an instance of MySqlDb.
      *
      * @return MySqlDb instance.

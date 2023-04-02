@@ -40,14 +40,14 @@ public class TableManager {
     }
 
     /**
-     * Will insert the given data for the table.
+     * Will update the given data for the table.
      *
      * @param table needs to annotate Table
      * @throws AnnotationNotFoundException when there are no annotations found.
      * @throws IllegalAccessException      If one of the fields are inaccessible.
      * @throws PrimaryKeyNotFoundException if a primary key wasn't found.
      */
-    public void update(Object table) throws AnnotationNotFoundException, IllegalAccessException, PrimaryKeyNotFoundException {
+    public TableManager update(Object table) throws AnnotationNotFoundException, IllegalAccessException, PrimaryKeyNotFoundException {
         Class<?> clazz = table.getClass();
 
         if (!clazz.isAnnotationPresent(Table.class))
@@ -83,5 +83,46 @@ public class TableManager {
                 comparableColumn,
                 comparableValue
         );
+
+        return this;
+    }
+
+    /**
+     * Will remove an entry from a table
+     *
+     * @param table needs to annotate Table
+     */
+    public TableManager delete(Object table) throws AnnotationNotFoundException, IllegalAccessException, PrimaryKeyNotFoundException {
+        Class<?> clazz = table.getClass();
+
+        if (!clazz.isAnnotationPresent(Table.class))
+            throw new AnnotationNotFoundException("This table is not annotating from Table.");
+
+        Table anno = clazz.getAnnotation(Table.class);
+
+        String primaryKeyColumn = "";
+        String primaryKeyValue = "";
+
+        for (Field field : clazz.getFields()) {
+            if (!field.isAnnotationPresent(TableColumn.class)) continue;
+            TableColumn column = field.getAnnotation(TableColumn.class);
+
+            // Check if field is a PK
+            if (column.primaryKey()) {
+                primaryKeyColumn = column.name();
+                primaryKeyValue = field.get(table).toString();
+                break;
+            }
+        }
+
+        if (primaryKeyColumn.isEmpty()) throw new PrimaryKeyNotFoundException("This table has no primary key");
+
+        connection.delete(
+                anno.table_name(),
+                primaryKeyColumn,
+                primaryKeyValue
+        );
+
+        return this;
     }
 }
