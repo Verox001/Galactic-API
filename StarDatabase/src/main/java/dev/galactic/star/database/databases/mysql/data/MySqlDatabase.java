@@ -1,11 +1,11 @@
 /*
- * Copyright 2022 Galactic Star Studios
+ * Copyright 2023 Galactic Star Studios
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,12 +99,12 @@ public class MySqlDatabase {
      * @see Database
      * @see MySqlDb
      */
-    public MySqlDatabase createDatabases(Class<?>... classes) {
-        for (Class<?> clazz : classes) {
-            if (!clazz.isAnnotationPresent(Database.class)) {
+    public MySqlDatabase createDatabases(Object... classes) {
+        for (Object clazz : classes) {
+            if (!clazz.getClass().isAnnotationPresent(Database.class)) {
                 throw new InvalidParameterException("That object doesn't have a Database annotation.");
             }
-            this.createDatabases(clazz.getAnnotation(Database.class).name());
+            this.createDatabases(clazz.getClass().getAnnotation(Database.class).name());
         }
         return this;
     }
@@ -180,7 +180,7 @@ public class MySqlDatabase {
         }
         return this;
     }
-
+    
     /**
      * Returns an instance of MySqlDb.
      *
