@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * Contains managers for tab completion, cooldowns, and command handlers.
+ */
+package dev.galactic.star.commands.managers;

@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.impl.exceptions;
 
-	public static void main(String[] args) {
-	}
+/**
+ * The exception that is thrown when a query is invalid.
+ */
+public class InvalidQueryException extends Exception {
+
+    public InvalidQueryException(String s) {
+        super(s);
+    }
 }

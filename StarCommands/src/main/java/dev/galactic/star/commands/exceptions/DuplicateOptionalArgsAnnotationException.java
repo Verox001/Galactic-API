@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.exceptions;
 
-	public static void main(String[] args) {
+/**
+ * The exception that is thrown when a duplicate of the @OptionalArgs annotation is found.
+ */
+public class DuplicateOptionalArgsAnnotationException extends Exception {
+	public DuplicateOptionalArgsAnnotationException() {
+	}
+
+	public DuplicateOptionalArgsAnnotationException(String message) {
+		super(message);
+	}
+
+	public DuplicateOptionalArgsAnnotationException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

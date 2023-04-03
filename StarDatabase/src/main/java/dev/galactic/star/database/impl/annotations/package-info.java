@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * The package that declares all the annotations used to create a database, table, and columns
+ */
+package dev.galactic.star.database.impl.annotations;

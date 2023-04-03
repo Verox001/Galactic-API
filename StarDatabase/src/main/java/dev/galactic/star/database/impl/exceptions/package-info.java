@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * The list exceptions that are thrown in the program.
+ */
+package dev.galactic.star.database.impl.exceptions;

@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.exceptions;
 
-	public static void main(String[] args) {
+/**
+ * The exception that is thrown when there is an unknown TabCompletion ID found..
+ */
+public class UnknownCompletionIdException extends Exception {
+	public UnknownCompletionIdException() {
+	}
+
+	public UnknownCompletionIdException(String message) {
+		super(message);
+	}
+
+	public UnknownCompletionIdException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

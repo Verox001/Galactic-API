@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.databases.mysql.data;
 
-	public static void main(String[] args) {
-	}
+import dev.galactic.star.database.impl.annotations.TableColumn;
+
+public class TableNoAnnotationTest {
+
+    @TableColumn(name = "count", maxDisplayed = 100, primaryKey = true, autoIncrement = true, notNull = true)
+    String count = MySqlDataTypes.INT;
+
+    @TableColumn(name = "user_names", maxDisplayed = 100, notNull = true)
+    String usernames = MySqlDataTypes.VARCHAR;
+
+    @TableColumn(name = "passwords", maxDisplayed = 100, notNull = true)
+    String passwords = MySqlDataTypes.VARCHAR;
 }

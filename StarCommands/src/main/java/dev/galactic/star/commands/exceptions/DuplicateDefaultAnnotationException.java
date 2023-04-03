@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.exceptions;
 
-	public static void main(String[] args) {
+/**
+ * The exception that is thrown when a duplicate of the @Main annotation is found.
+ */
+public class DuplicateDefaultAnnotationException extends Exception {
+	public DuplicateDefaultAnnotationException() {
+	}
+
+	public DuplicateDefaultAnnotationException(String message) {
+		super(message);
+	}
+
+	public DuplicateDefaultAnnotationException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

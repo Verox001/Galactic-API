@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.impl.exceptions;
 
-	public static void main(String[] args) {
-	}
+/**
+ * The exception that is thrown when the connection is null or invalid.
+ */
+public class InvalidConnectionException extends Exception {
+
+    public InvalidConnectionException(String s) {
+        super(s);
+    }
 }

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * Extra data that is used when interacting with the database
+ */
+package dev.galactic.star.database.databases.mysql.data;

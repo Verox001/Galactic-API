@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.exceptions;
 
-	public static void main(String[] args) {
+/**
+ * The exception that is thrown when the @OptionalArgs annotation is not the last one.
+ */
+public class IllegalOptionalArgsAnnotationException extends Exception {
+	public IllegalOptionalArgsAnnotationException() {
+	}
+
+	public IllegalOptionalArgsAnnotationException(String message) {
+		super(message);
+	}
+
+	public IllegalOptionalArgsAnnotationException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

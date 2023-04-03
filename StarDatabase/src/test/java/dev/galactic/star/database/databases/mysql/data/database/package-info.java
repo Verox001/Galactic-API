@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * Includes the database tests
+ */
+package dev.galactic.star.database.databases.mysql.data.database;

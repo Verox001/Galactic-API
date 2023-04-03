@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.databases.mysql.data.database;
 
-	public static void main(String[] args) {
-	}
+import dev.galactic.star.database.impl.annotations.Database;
+import dev.galactic.star.database.impl.annotations.Table;
+
+@Database(name = "test_db")
+public class DbParentTest {
+    @Table(table_name = "test_tbl1")
+    TableTest1 tbl1 = new TableTest1();
+
+    @Table(table_name = "test_tbl2")
+    TableTest2 tbl2 = new TableTest2();
+
+    @Table(table_name = "test_tbl3")
+    TableTest3 tbl3 = new TableTest3();
 }

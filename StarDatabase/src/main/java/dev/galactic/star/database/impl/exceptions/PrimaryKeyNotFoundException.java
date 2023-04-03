@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.impl.exceptions;
 
-	public static void main(String[] args) {
-	}
+/**
+ * The exception is thrown, when there is no primary key is found, while trying to process an update.
+ */
+public class PrimaryKeyNotFoundException extends Exception {
+    public PrimaryKeyNotFoundException(String message) {
+        super(message);
+    }
+
+    public PrimaryKeyNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.impl.exceptions;
 
-	public static void main(String[] args) {
-	}
+/**
+ * The exception that is thrown when there is not an annotation found when there should be one.
+ */
+public class AnnotationNotFoundException extends Exception {
+    public AnnotationNotFoundException(String message) {
+        super(message);
+    }
+
+    public AnnotationNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * The classes that are used to interact with the database API.
+ */
+package dev.galactic.star.database.databases.mysql;

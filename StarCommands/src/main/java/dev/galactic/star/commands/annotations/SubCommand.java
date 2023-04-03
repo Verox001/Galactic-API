@@ -14,8 +14,31 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.annotations;
 
-	public static void main(String[] args) {
-	}
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * The annotation that handles a subcommand.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface SubCommand {
+    /**
+     * Name of the subcommand.
+     *
+     * @return Subcommand name.
+     */
+    String value();
+
+
+    /**
+     * The usage for the subcommand.
+     *
+     * @return Subcommand usage.
+     */
+    String usage() default "";
 }

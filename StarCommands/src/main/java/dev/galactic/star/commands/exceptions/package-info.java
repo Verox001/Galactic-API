@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * Exceptions thrown when the program encounters an error.
+ */
+package dev.galactic.star.commands.exceptions;

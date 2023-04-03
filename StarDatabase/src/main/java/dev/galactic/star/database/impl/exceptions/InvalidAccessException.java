@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.impl.exceptions;
 
-	public static void main(String[] args) {
-	}
+/**
+ * The exception that is thrown when access is denied or a database with the name specified doesn't exist.
+ */
+public class InvalidAccessException extends Exception {
+
+    public InvalidAccessException(String message) {
+        super(message);
+    }
 }

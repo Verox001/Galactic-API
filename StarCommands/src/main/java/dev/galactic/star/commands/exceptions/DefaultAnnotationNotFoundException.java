@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.exceptions;
 
-	public static void main(String[] args) {
+/**
+ * The exception that is thrown when the @Default annotation doesn't exist.
+ */
+public class DefaultAnnotationNotFoundException extends Exception {
+	public DefaultAnnotationNotFoundException() {
+	}
+
+	public DefaultAnnotationNotFoundException(String message) {
+		super(message);
+	}
+
+	public DefaultAnnotationNotFoundException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

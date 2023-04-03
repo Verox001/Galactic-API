@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.commands.annotations;
 
-	public static void main(String[] args) {
-	}
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface TabCompletion {
+
+	/**
+	 * An array of all the types of tab complete passed in.
+	 *
+	 * @return Array of tab complete types.
+	 */
+	String[] value();
 }

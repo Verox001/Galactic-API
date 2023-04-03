@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * Manager for the tables and other stuff.
+ */
+package dev.galactic.star.database.impl.manager;

@@ -14,8 +14,23 @@
  * limitations under the License.
  */
 
-public class Main {
+package dev.galactic.star.database.impl.annotations;
 
-	public static void main(String[] args) {
-	}
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * The annotation that defines a table in a database.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
+public @interface Table {
+    /**
+     * The name of the table to create.
+     *
+     * @return Table name.
+     */
+    String table_name() default "no_name_table";
 }

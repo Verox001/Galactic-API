@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-public class Main {
-
-	public static void main(String[] args) {
-	}
-}
+/**
+ * Contains annotations used in the API.
+ */
+package dev.galactic.star.commands.annotations;
